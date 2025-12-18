@@ -47,9 +47,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         subscribers: [
           {
             email: subscriber,
-            name: name,
-            $company: req.body.companyName, // 사용자 정의 필드 (필요시)
-            $country: req.body.country
+            name: name
           }
         ]
       })
