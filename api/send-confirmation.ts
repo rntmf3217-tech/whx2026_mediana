@@ -24,6 +24,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const STIBEE_API_URL = process.env.STIBEE_API_URL;
   const STIBEE_API_KEY = process.env.STIBEE_API_KEY;
+  // 주소록 ID는 환경변수에서 가져오거나, 없으면 기본값(예: 461332)을 사용
+  const STIBEE_LIST_ID = process.env.STIBEE_LIST_ID || "461332";
 
   if (!STIBEE_API_URL || !STIBEE_API_KEY) {
     console.error("Missing Stibee configuration");
@@ -31,6 +33,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // 1. 구독자 추가 (Add Subscriber)
+    // 이미 있는 경우 업데이트됨
+    const addSubscriberResponse = await fetch(`https://stibee.com/api/v1.0/lists/${STIBEE_LIST_ID}/subscribers`, {
+      method: 'POST',
+      headers: {
+        'AccessToken': STIBEE_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        eventOccuredBy: "MANUAL", // 수동 입력으로 처리
+        confirmEmailYN: "N", // 확인 메일 발송 안 함 (바로 구독)
+        subscribers: [
+          {
+            email: subscriber,
+            name: name,
+            $company: req.body.companyName, // 사용자 정의 필드 (필요시)
+            $country: req.body.country
+          }
+        ]
+      })
+    });
+
+    // 구독자 추가 실패 시 로그만 남기고 계속 진행 (이미 있거나 오류 발생 시에도 발송 시도)
+    if (!addSubscriberResponse.ok) {
+      const errorText = await addSubscriberResponse.text();
+      console.warn("Subscriber add warning:", errorText);
+    }
+
+    // 2. 자동 메일 발송 (Send Auto Email)
     const response = await fetch(STIBEE_API_URL, {
       method: 'POST',
       headers: {
