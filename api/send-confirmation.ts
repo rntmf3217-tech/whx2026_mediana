@@ -33,13 +33,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // 0. Stibee API 연결 및 리스트 확인 (디버깅용)
+    console.log("Checking Stibee List/Auth status...");
+    const healthCheckResponse = await fetch(`https://stibee.com/api/v1.0/lists/${STIBEE_LIST_ID}`, {
+      method: 'GET',
+      headers: {
+        'AccessToken': STIBEE_API_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!healthCheckResponse.ok) {
+      const healthCheckError = await healthCheckResponse.text();
+      console.error("Stibee Connection Check Failed:", healthCheckResponse.status, healthCheckError);
+      return res.status(500).json({ error: `Stibee Auth/List Error: ${healthCheckResponse.status}` });
+    }
+    
+    const healthCheckData = await healthCheckResponse.json();
+    console.log("Stibee Connection Verified. List Name:", healthCheckData.name);
+
     // 1. 구독자 추가 (Add Subscriber)
     // 이미 있는 경우 업데이트됨
     console.log("Adding subscriber to list:", STIBEE_LIST_ID);
     
     // 만약의 경우를 대비해 사용자 정의 필드 없이 기본 정보만 먼저 시도
     const subscriberPayload = {
-      eventOccuredBy: "MANUAL",
+      eventOccuredBy: "SUBSCRIBER", // MANUAL -> SUBSCRIBER 변경 (권한 이슈 가능성 배제)
       confirmEmailYN: "N",
       subscribers: [
         {
@@ -68,6 +87,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!addSubscriberResponse.ok) {
       const errorText = await addSubscriberResponse.text();
       console.warn("Subscriber add warning:", errorText);
+    } else {
+      console.log("Subscriber added successfully");
     }
 
     // 2. 자동 메일 발송 (Send Auto Email)
