@@ -47,7 +47,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         subscribers: [
           {
             email: subscriber,
-            name: name
+            name: name,
+            // 사용자 정의 필드 추가
+            $meeting_date: meeting_date,
+            $meeting_time: meeting_time,
+            $manage_link: manage_link
           }
         ]
       })
@@ -68,8 +72,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       body: JSON.stringify({
         subscriber,
-        name
-        // meeting_date, meeting_time, manage_link 제거 (에러 방지용)
+        name,
+        meeting_date,
+        meeting_time,
+        manage_link: manage_link || "https://whx-reservation.vercel.app"
       })
     });
 
