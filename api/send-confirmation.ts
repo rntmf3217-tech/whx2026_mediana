@@ -68,10 +68,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       body: JSON.stringify({
         subscriber,
-        name,
-        meeting_date,
-        meeting_time,
-        manage_link: manage_link || "https://whx-reservation.vercel.app"
+        name
+        // meeting_date, meeting_time, manage_link 제거 (에러 방지용)
       })
     });
 
