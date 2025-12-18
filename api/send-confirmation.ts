@@ -35,26 +35,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     // 1. 구독자 추가 (Add Subscriber)
     // 이미 있는 경우 업데이트됨
+    console.log("Adding subscriber to list:", STIBEE_LIST_ID);
+    
+    // 만약의 경우를 대비해 사용자 정의 필드 없이 기본 정보만 먼저 시도
+    const subscriberPayload = {
+      eventOccuredBy: "MANUAL",
+      confirmEmailYN: "N",
+      subscribers: [
+        {
+          email: String(subscriber).trim(),
+          name: String(name).trim(),
+          // 사용자 정의 필드: 값이 없으면 빈 문자열이라도 보냄
+          $meeting_date: String(meeting_date || "").trim(),
+          $meeting_time: String(meeting_time || "").trim(),
+          $manage_link: String(manage_link || "").trim()
+        }
+      ]
+    };
+    
+    console.log("Subscriber Payload:", JSON.stringify(subscriberPayload));
+
     const addSubscriberResponse = await fetch(`https://stibee.com/api/v1.0/lists/${STIBEE_LIST_ID}/subscribers`, {
       method: 'POST',
       headers: {
         'AccessToken': STIBEE_API_KEY,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        eventOccuredBy: "MANUAL", // 수동 입력으로 처리
-        confirmEmailYN: "N", // 확인 메일 발송 안 함 (바로 구독)
-        subscribers: [
-          {
-            email: subscriber,
-            name: name,
-            // 사용자 정의 필드 추가
-            $meeting_date: meeting_date,
-            $meeting_time: meeting_time,
-            $manage_link: manage_link
-          }
-        ]
-      })
+      body: JSON.stringify(subscriberPayload)
     });
 
     // 구독자 추가 실패 시 로그만 남기고 계속 진행 (이미 있거나 오류 발생 시에도 발송 시도)
@@ -71,11 +78,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        subscriber,
-        name,
-        meeting_date,
-        meeting_time,
-        manage_link: manage_link || "https://whx-reservation.vercel.app"
+        subscriber: String(subscriber),
+        name: String(name)
+        // 변수 치환 데이터 일단 제외 (발송 성공 우선)
       })
     });
 
