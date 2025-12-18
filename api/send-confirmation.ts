@@ -44,11 +44,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       subscribers: [
         {
           email: String(subscriber).trim(),
-          name: String(name).trim(),
-          // 사용자 정의 필드: 값이 없으면 빈 문자열이라도 보냄
-          $meeting_date: String(meeting_date || "").trim(),
-          $meeting_time: String(meeting_time || "").trim(),
-          $manage_link: String(manage_link || "").trim()
+          name: String(name).trim()
+          // 사용자 정의 필드 일단 제거 (에러 원인 파악용)
+          // $meeting_date: String(meeting_date || "").trim(),
+          // $meeting_time: String(meeting_time || "").trim(),
+          // $manage_link: String(manage_link || "").trim()
         }
       ]
     };
