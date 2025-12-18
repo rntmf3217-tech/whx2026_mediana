@@ -23,19 +23,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const STIBEE_API_URL = process.env.STIBEE_API_URL;
-  const STIBEE_API_KEY = process.env.STIBEE_API_KEY;
-  // 주소록 ID는 환경변수에서 가져오거나, 없으면 기본값(예: 461332)을 사용
-  const STIBEE_LIST_ID = process.env.STIBEE_LIST_ID || "461332";
+  // 환경변수 공백 제거 (매우 중요: Vercel 환경변수 복사 시 공백이 들어가는 경우가 많음)
+  const STIBEE_API_KEY = (process.env.STIBEE_API_KEY || "").trim();
+  const STIBEE_LIST_ID = (process.env.STIBEE_LIST_ID || "461332").trim();
 
   if (!STIBEE_API_URL || !STIBEE_API_KEY) {
     console.error("Missing Stibee configuration");
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
+  // 디버깅: 키 길이 확인 (보안상 키 자체는 로그에 남기지 않음)
+  console.log(`Config Check - API Key Length: ${STIBEE_API_KEY.length}, List ID: ${STIBEE_LIST_ID} (Length: ${STIBEE_LIST_ID.length})`);
+
   try {
-    // 0. Stibee API 연결 및 리스트 확인 (디버깅용)
-    console.log("Checking Stibee List/Auth status...");
-    const healthCheckResponse = await fetch(`https://stibee.com/api/v1.0/lists/${STIBEE_LIST_ID}`, {
+    // 0. API 키 유효성 테스트 (전체 리스트 조회)
+    // 특정 리스트 조회(GET /lists/:id)가 500 에러를 뱉으므로, 
+    // API 키 자체가 유효한지 확인하기 위해 전체 리스트 조회(GET /lists)를 먼저 시도
+    console.log("Step 0: Testing API Key validity with GET /lists ...");
+    const healthCheckResponse = await fetch(`https://stibee.com/api/v1.0/lists`, {
       method: 'GET',
       headers: {
         'AccessToken': STIBEE_API_KEY,
@@ -45,12 +50,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!healthCheckResponse.ok) {
       const healthCheckError = await healthCheckResponse.text();
-      console.error("Stibee Connection Check Failed:", healthCheckResponse.status, healthCheckError);
-      return res.status(500).json({ error: `Stibee Auth/List Error: ${healthCheckResponse.status}` });
+      console.error("API Key Test Failed:", healthCheckResponse.status, healthCheckError);
+      return res.status(500).json({ 
+        error: `Stibee API Key Error. Status: ${healthCheckResponse.status}. Message: ${healthCheckError}` 
+      });
     }
     
-    const healthCheckData = await healthCheckResponse.json();
-    console.log("Stibee Connection Verified. List Name:", healthCheckData.name);
+    const listsData = await healthCheckResponse.json();
+    console.log("API Key Verified. Found lists:", listsData.map((l: any) => `${l.name} (${l.id})`).join(", "));
+
+    // 리스트 ID가 실제 존재하는지 확인
+    const targetList = listsData.find((l: any) => String(l.id) === STIBEE_LIST_ID);
+    if (!targetList) {
+      console.error(`List ID ${STIBEE_LIST_ID} not found in the account.`);
+      return res.status(500).json({ error: `List ID ${STIBEE_LIST_ID} not found. Available lists: ${listsData.map((l: any) => l.id).join(", ")}` });
+    }
+    console.log(`Target List '${targetList.name}' (${targetList.id}) confirmed.`);
 
     // 1. 구독자 추가 (Add Subscriber)
     // 이미 있는 경우 업데이트됨
