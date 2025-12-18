@@ -32,25 +32,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'Server configuration error' });
   }
 
-  // 디버깅: 키 길이 확인 (보안상 키 자체는 로그에 남기지 않음)
-  console.log(`Config Check - API Key Length: ${STIBEE_API_KEY.length}, List ID: ${STIBEE_LIST_ID} (Length: ${STIBEE_LIST_ID.length})`);
+  // 디버깅: 키 길이 및 앞부분 확인 (혹시 키가 잘못 복사되었는지 확인)
+  const keyPrefix = STIBEE_API_KEY.substring(0, 4);
+  console.log(`Config Check - API Key Length: ${STIBEE_API_KEY.length}, Prefix: ${keyPrefix}****, List ID: ${STIBEE_LIST_ID}`);
 
   try {
     // 0. API 키 유효성 테스트 (전체 리스트 조회)
-    // 특정 리스트 조회(GET /lists/:id)가 500 에러를 뱉으므로, 
-    // API 키 자체가 유효한지 확인하기 위해 전체 리스트 조회(GET /lists)를 먼저 시도
     console.log("Step 0: Testing API Key validity with GET /lists ...");
     const healthCheckResponse = await fetch(`https://stibee.com/api/v1.0/lists`, {
       method: 'GET',
       headers: {
         'AccessToken': STIBEE_API_KEY,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Agent': 'WHX-Reservation-Server/1.0' // User-Agent 추가 (일부 방화벽 차단 방지)
       }
     });
 
     if (!healthCheckResponse.ok) {
       const healthCheckError = await healthCheckResponse.text();
       console.error("API Key Test Failed:", healthCheckResponse.status, healthCheckError);
+      
+      // 500 에러가 계속되면 키 문제일 확률이 매우 높음
+      if (healthCheckResponse.status === 500) {
+        return res.status(500).json({ 
+          error: `Stibee API Internal Error (500). Please regenerate your API Key and check permissions. Server message: ${healthCheckError}` 
+        });
+      }
+      
       return res.status(500).json({ 
         error: `Stibee API Key Error. Status: ${healthCheckResponse.status}. Message: ${healthCheckError}` 
       });
