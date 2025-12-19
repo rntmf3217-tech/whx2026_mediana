@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // 디버깅: 키 길이 및 앞부분 확인 (혹시 키가 잘못 복사되었는지 확인)
   const keyPrefix = STIBEE_API_KEY.substring(0, 4);
-  console.log(`Config Check - API Key Length: ${STIBEE_API_KEY.length}, Prefix: ${keyPrefix}****, List ID: ${STIBEE_LIST_ID}`);
+  console.log(`[DEBUG V2] Config Check - API Key Length: ${STIBEE_API_KEY.length}, Prefix: ${keyPrefix}****, List ID: ${STIBEE_LIST_ID}`);
 
   try {
     // 0. API 키 유효성 테스트 (전체 리스트 조회)
@@ -43,8 +43,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       method: 'GET',
       headers: {
         'AccessToken': STIBEE_API_KEY,
-        'Content-Type': 'application/json',
-        'User-Agent': 'WHX-Reservation-Server/1.0' // User-Agent 추가 (일부 방화벽 차단 방지)
+        // GET 요청에는 Content-Type이 필요 없음 (오히려 에러 유발 가능성 있음)
+        'User-Agent': 'WHX-Reservation-Server/1.0'
       }
     });
 
