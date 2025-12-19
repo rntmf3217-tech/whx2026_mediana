@@ -35,22 +35,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ---------------------------------------------------------
     // Step 1: 구독자 주소록에 추가 (v1.0 API)
     // ---------------------------------------------------------
-    // 참고: 자동 메일 트리거가 주소록 추가를 겸할 수도 있지만, 
-    // 명시적으로 추가하여 정보를 갱신하는 것이 안전함.
     console.log("Step 1: Adding subscriber to list (v1.0)...");
     
+    // 중요: 사용자 정의 필드명에서 '$' 접두사 제거 (스티비 API 스펙 준수)
+    // 스티비 주소록에 'meeting_date', 'meeting_time', 'manage_link' 필드가 미리 생성되어 있어야 함
     const addParams = {
       eventOccuredBy: 'SUBSCRIBER',
-      confirmEmailYN: 'N', // 자동 메일 트리거를 별도로 하므로 N 설정
+      confirmEmailYN: 'N',
       subscribers: [
         {
           email: String(subscriber).trim(),
           name: String(name).trim(),
-          // 사용자 정의 필드 (주소록에 저장될 정보)
-          $meeting_date: String(meeting_date).trim(),
-          $meeting_time: String(meeting_time).trim(),
-          $manage_link: String(manage_link || "").trim(),
-          $status: 'RESERVED'
+          // $ 접두사 제거
+          meeting_date: String(meeting_date).trim(),
+          meeting_time: String(meeting_time).trim(),
+          manage_link: String(manage_link || "").trim()
         }
       ]
     };
@@ -67,7 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!addResponse.ok) {
       const errorText = await addResponse.text();
       console.warn(`Warning: Failed to add subscriber to list. Status: ${addResponse.status}, Msg: ${errorText}`);
-      // 리스트 추가 실패해도 메일 발송은 시도해봄
+      // 500 에러 발생 시: 주소록 필드 설정(meeting_date 등)이 실제 스티비 주소록과 일치하는지 확인 필요
     } else {
       const addResult = await addResponse.json();
       console.log("Subscriber added/updated:", addResult);
@@ -76,15 +75,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ---------------------------------------------------------
     // Step 2: 자동 메일 트리거 (v1.0 Auto API)
     // ---------------------------------------------------------
-    // 사용자가 제공한 URL로 직접 요청
     console.log("Step 2: Triggering Auto Email...");
 
     const triggerParams = {
-      subscriber: String(subscriber).trim(), // Auto API에서는 key가 'subscriber'일 수 있음
+      subscriber: String(subscriber).trim(),
       name: String(name).trim(),
-      $meeting_date: String(meeting_date).trim(),
-      $meeting_time: String(meeting_time).trim(),
-      $manage_link: String(manage_link || "").trim()
+      // $ 접두사 제거
+      meeting_date: String(meeting_date).trim(),
+      meeting_time: String(meeting_time).trim(),
+      manage_link: String(manage_link || "").trim()
     };
     
     console.log("Trigger Payload:", JSON.stringify(triggerParams));
@@ -101,6 +100,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!triggerResponse.ok) {
       const errorText = await triggerResponse.text();
       console.error(`Auto Email Trigger Failed: ${triggerResponse.status} ${errorText}`);
+      
+      // 400 UnusableTrigger 에러에 대한 친절한 안내 추가
+      if (errorText.includes("UnusableTrigger")) {
+         throw new Error(`자동 이메일이 '발송 중(ON)' 상태인지 확인해주세요. (Error: ${errorText})`);
+      }
       throw new Error(`Email Trigger Error: ${triggerResponse.status} ${errorText}`);
     }
 
