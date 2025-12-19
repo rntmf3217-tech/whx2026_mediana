@@ -22,28 +22,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  // Stibee v2 API 설정
-  const STIBEE_BASE_URL = "https://api.stibee.com/v2";
-  // 사용자가 제공한 v2 API Key (우선순위 높음)
-  const STIBEE_API_KEY_V2 = "58c4936ec3b11ed206fa744bccde14cace1fafe71ed93b49b8b2ead92bbc0fe1c692fe09193ea4b4fd53fb30b83c2d1008f01572144a7f9a4b4b26059102ab07";
+  // 1. 설정 (사용자가 제공한 정보 기반)
+  const STIBEE_API_KEY = "58c4936ec3b11ed206fa744bccde14cace1fafe71ed93b49b8b2ead92bbc0fe1c692fe09193ea4b4fd53fb30b83c2d1008f01572144a7f9a4b4b26059102ab07";
   const STIBEE_LIST_ID = (process.env.STIBEE_LIST_ID || "461332").trim();
+  // 사용자가 제공한 자동 메일 트리거 URL (API 발송용)
+  const STIBEE_AUTO_URL = "https://stibee.com/api/v1.0/auto/MDViMjczMTItYmI0Yy00ODk1LWI3MjUtNDkyZmI1YTY1MDMw";
 
-  // 디버깅: 키 앞부분 확인
-  const keyPrefix = STIBEE_API_KEY_V2.substring(0, 4);
-  console.log(`[DEBUG V2] Using v2 API. Key Prefix: ${keyPrefix}****, List ID: ${STIBEE_LIST_ID}`);
+  // 디버깅
+  console.log(`[DEBUG] Processing Reservation for: ${subscriber} (${name})`);
 
   try {
-    // 1. 구독자 추가 (v2 API)
-    console.log("Step 1: Adding subscriber to Stibee v2...");
+    // ---------------------------------------------------------
+    // Step 1: 구독자 주소록에 추가 (v1.0 API)
+    // ---------------------------------------------------------
+    // 참고: 자동 메일 트리거가 주소록 추가를 겸할 수도 있지만, 
+    // 명시적으로 추가하여 정보를 갱신하는 것이 안전함.
+    console.log("Step 1: Adding subscriber to list (v1.0)...");
     
-    const subscriberPayload = {
-      eventOccuredBy: 'SUBSCRIBER', // 구독자가 직접 입력
-      confirmEmailYN: 'N',         // 확인 이메일 발송 여부
+    const addParams = {
+      eventOccuredBy: 'SUBSCRIBER',
+      confirmEmailYN: 'N', // 자동 메일 트리거를 별도로 하므로 N 설정
       subscribers: [
         {
           email: String(subscriber).trim(),
           name: String(name).trim(),
-          // 사용자 정의 필드 (예약 정보)
+          // 사용자 정의 필드 (주소록에 저장될 정보)
           $meeting_date: String(meeting_date).trim(),
           $meeting_time: String(meeting_time).trim(),
           $manage_link: String(manage_link || "").trim(),
@@ -52,30 +55,62 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ]
     };
 
-    console.log("Payload:", JSON.stringify(subscriberPayload));
-
-    const response = await fetch(`${STIBEE_BASE_URL}/lists/${STIBEE_LIST_ID}/subscribers`, {
+    const addResponse = await fetch(`https://stibee.com/api/v1.0/lists/${STIBEE_LIST_ID}/subscribers`, {
       method: 'POST',
       headers: {
-        'AccessToken': STIBEE_API_KEY_V2,
+        'AccessToken': STIBEE_API_KEY,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(subscriberPayload)
+      body: JSON.stringify(addParams)
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Stibee v2 API Error: ${response.status} ${errorText}`);
-      throw new Error(`Stibee API Error: ${response.status} ${errorText}`);
+    if (!addResponse.ok) {
+      const errorText = await addResponse.text();
+      console.warn(`Warning: Failed to add subscriber to list. Status: ${addResponse.status}, Msg: ${errorText}`);
+      // 리스트 추가 실패해도 메일 발송은 시도해봄
+    } else {
+      const addResult = await addResponse.json();
+      console.log("Subscriber added/updated:", addResult);
     }
 
-    const data = await response.json();
-    console.log("Stibee v2 Subscriber Added:", data);
+    // ---------------------------------------------------------
+    // Step 2: 자동 메일 트리거 (v1.0 Auto API)
+    // ---------------------------------------------------------
+    // 사용자가 제공한 URL로 직접 요청
+    console.log("Step 2: Triggering Auto Email...");
+
+    const triggerParams = {
+      subscriber: String(subscriber).trim(), // Auto API에서는 key가 'subscriber'일 수 있음
+      name: String(name).trim(),
+      $meeting_date: String(meeting_date).trim(),
+      $meeting_time: String(meeting_time).trim(),
+      $manage_link: String(manage_link || "").trim()
+    };
+    
+    console.log("Trigger Payload:", JSON.stringify(triggerParams));
+
+    const triggerResponse = await fetch(STIBEE_AUTO_URL, {
+      method: 'POST',
+      headers: {
+        'AccessToken': STIBEE_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(triggerParams)
+    });
+
+    if (!triggerResponse.ok) {
+      const errorText = await triggerResponse.text();
+      console.error(`Auto Email Trigger Failed: ${triggerResponse.status} ${errorText}`);
+      throw new Error(`Email Trigger Error: ${triggerResponse.status} ${errorText}`);
+    }
+
+    const triggerResult = await triggerResponse.json();
+    console.log("Auto Email Triggered Successfully:", triggerResult);
 
     return res.status(200).json({ 
       success: true, 
-      message: "Reservation confirmed and confirmation email sent (via Stibee Auto-Mail).",
-      data: data 
+      message: "Reservation confirmed and email triggered.",
+      data: triggerResult
     });
 
   } catch (error: any) {
