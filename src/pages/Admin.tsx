@@ -556,10 +556,10 @@ export function Admin() {
                         </td>
                         <td className="px-6 py-4">
                           <span className={cn(
-                            "inline-flex items-center px-2 py-1 rounded text-xs font-medium border",
+                            "text-xs font-medium",
                             !booking.meetingWith || booking.meetingWith === '담당자 미선택' 
-                              ? "bg-red-500/10 text-red-400 border-red-500/20" 
-                              : "bg-white/5 text-slate-300 border-white/10"
+                              ? "text-red-400" 
+                              : "text-slate-300"
                           )}>
                             {booking.meetingWith || '담당자 미선택'}
                           </span>
@@ -634,12 +634,8 @@ export function Admin() {
                                   Existing
                                 </span>
                               )}
-                            </div>
-                            <div className="text-slate-500 text-xs truncate mb-1">{b.name}</div>
-                            
-                            <div className="mt-2">
-                                <span className={cn(
-                                    "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border",
+                              <span className={cn(
+                                    "shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border",
                                     !b.meetingWith || b.meetingWith === '담당자 미선택'
                                     ? "bg-red-500/10 text-red-400 border-red-500/20"
                                     : "bg-white/5 text-slate-400 border-white/10"
@@ -647,6 +643,7 @@ export function Admin() {
                                     {b.meetingWith || '담당자 미선택'}
                                 </span>
                             </div>
+                            <div className="text-slate-500 text-xs truncate mb-1">{b.name}</div>
                           </div>
                         ))
                       )}
