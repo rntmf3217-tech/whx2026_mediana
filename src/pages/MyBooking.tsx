@@ -58,21 +58,8 @@ export function MyBooking() {
           await cancelBooking(deleteModal.bookingId);
           console.log("[Cancel Flow] Step 2: Booking deleted from DB.");
           
-          // 3. Stibee Subscriber Delete (Last)
-          try {
-              console.log("[Cancel Flow] Step 3: Deleting subscriber from Stibee...");
-              // Add a small delay to ensure Stibee processes the trigger email before deletion
-              await new Promise(resolve => setTimeout(resolve, 1000)); 
-              
-              await fetch('/api/delete-subscriber', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ email })
-              });
-              console.log("[Cancel Flow] Step 3: Subscriber deleted.");
-          } catch (e) {
-              console.error("[Cancel Flow] Failed to delete subscriber (non-fatal):", e);
-          }
+          // 3. Stibee Subscriber Deletion Removed (To prevent duplicate booking issues)
+          console.log("[Cancel Flow] Step 3: Subscriber deletion skipped (design change).");
   
           const data = await getBookingsByEmail(email); // Refresh
           setBookings(data);

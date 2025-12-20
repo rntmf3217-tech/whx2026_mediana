@@ -23,14 +23,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Use environment variables
-  const STIBEE_API_KEY = process.env.STIBEE_ACCESS_TOKEN || "58c4936ec3b11ed206fa744bccde14cace1fafe71ed93b49b8b2ead92bbc0fe1c692fe09193ea4b4fd53fb30b83c2d1008f01572144a7f9a4b4b26059102ab07";
-  const STIBEE_LIST_ID = (process.env.STIBEE_LIST_ID || "461332").trim();
+  const STIBEE_API_KEY = process.env.STIBEE_ACCESS_TOKEN || process.env.VITE_STIBEE_ACCESS_TOKEN;
+  const STIBEE_LIST_ID = process.env.STIBEE_LIST_ID || process.env.VITE_STIBEE_LIST_ID;
+  const TRIGGER_URL = process.env.STIBEE_TRIGGER_CREATE;
+
+  if (!STIBEE_API_KEY || !STIBEE_LIST_ID || !TRIGGER_URL) {
+    console.error('Missing configuration:', { STIBEE_LIST_ID_EXISTS: !!STIBEE_LIST_ID, TRIGGER_URL_EXISTS: !!TRIGGER_URL });
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
 
   try {
     console.log(`[DEBUG] Processing Reservation for: ${subscriber} (${name})`);
     
-    // Step 1: Add subscriber to list (v2 API)
-    console.log("Adding subscriber to Stibee list (v2)...");
+    // Step 1: Add/Update subscriber to list (v2 API)
+    console.log("Adding/Updating subscriber to Stibee list (v2)...");
     
     const subscriberResponse = await fetch(`https://api.stibee.com/v2/lists/${STIBEE_LIST_ID}/subscribers`, {
       method: 'POST',
@@ -56,15 +62,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (!subscriberResponse.ok) {
       const errorData = await subscriberResponse.json();
-      console.error('Failed to add subscriber:', subscriberResponse.status, errorData);
+      console.error('Failed to add/update subscriber:', subscriberResponse.status, errorData);
       throw new Error(`Subscriber add failed: ${subscriberResponse.status}`);
     }
 
-    console.log('✅ Subscriber added successfully - Email will be sent automatically by Stibee');
+    console.log('✅ Subscriber added/updated successfully');
+
+    // Step 2: Call Trigger API
+    console.log("Triggering confirmation email...");
+    const triggerRes = await fetch(TRIGGER_URL, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'AccessToken': STIBEE_API_KEY
+      },
+      body: JSON.stringify({ subscriber: String(subscriber).trim() })
+    });
+
+    if (!triggerRes.ok) {
+        const triggerError = await triggerRes.text();
+        console.error("Stibee Create Trigger Failed:", triggerError);
+        // We don't throw here to ensure the client gets a success response for the reservation itself,
+        // but it's good to log it.
+    } else {
+        console.log("✅ Confirmation email triggered successfully");
+    }
 
     return res.status(200).json({ 
       success: true, 
-      message: 'Confirmation email queued' 
+      message: 'Confirmation processed' 
     });
 
   } catch (error: any) {
