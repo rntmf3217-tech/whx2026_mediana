@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email } = req.body;
+  const { email, name, company, country, date, time, inquiryType } = req.body;
   const STIBEE_API_KEY = process.env.VITE_STIBEE_ACCESS_TOKEN || process.env.STIBEE_ACCESS_TOKEN;
   const TRIGGER_URL = process.env.STIBEE_TRIGGER_CANCEL;
 
@@ -45,6 +45,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     console.log("Stibee Cancel Trigger Sent Successfully");
+
+    // --- Admin Notification ---
+    fetch(`${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}/api/notify-admin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type: "Booking Cancelled",
+            name: name || "Unknown",
+            company: company || "N/A",
+            country: country || "N/A",
+            date: date || "N/A",
+            time: time || "N/A",
+            inquiryType: inquiryType || "N/A"
+        })
+    }).catch(e => console.error("Admin notify failed:", e));
+    // --------------------------
+
     return res.status(200).json({ success: true });
 
   } catch (error: any) {

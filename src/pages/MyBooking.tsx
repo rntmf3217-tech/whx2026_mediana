@@ -39,13 +39,25 @@ export function MyBooking() {
     if (deleteModal.bookingId && !isDeleting) {
       setIsDeleting(true);
       try {
+        // Find booking details for Admin Notification
+        const targetBooking = bookings?.find(b => b.id === deleteModal.bookingId);
+
         // 1. Trigger Cancel Email (First) - Priority
         try {
           console.log("[Cancel Flow] Step 1: Sending cancel email trigger...");
           await fetch('/api/notify-cancel', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email })
+              body: JSON.stringify({ 
+                email,
+                // Pass extra details for Admin Notification
+                name: targetBooking?.name,
+                company: targetBooking?.companyName,
+                country: targetBooking?.country,
+                date: targetBooking?.date,
+                time: targetBooking?.time,
+                inquiryType: targetBooking?.inquiryType
+              })
           });
           console.log("[Cancel Flow] Step 1: Email trigger sent.");
         } catch (e) {
@@ -283,7 +295,11 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                     email: booking.email,
                     name: booking.name,
                     date: selectedDate,
-                    time: selectedTime
+                    time: selectedTime,
+                    // Extra fields for Admin Notification
+                    company: booking.companyName,
+                    country: booking.country,
+                    inquiryType: formData.get("inquiryType") as string
                 })
             }).catch(e => console.error("Failed to send update notification:", e));
 

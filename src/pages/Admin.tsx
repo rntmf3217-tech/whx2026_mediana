@@ -101,6 +101,22 @@ export function Admin() {
         date: editModal.booking.date,
         time: editModal.booking.time,
       });
+
+      // Trigger Email Notification (Customer + Admin)
+      fetch('/api/notify-update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+              email: editModal.booking.email,
+              name: editModal.booking.name,
+              date: editModal.booking.date,
+              time: editModal.booking.time,
+              company: editModal.booking.companyName,
+              country: editModal.booking.country,
+              inquiryType: editModal.booking.inquiryType
+          })
+      }).catch(e => console.error("Failed to send update notification from Admin:", e));
+
       await refresh();
       setEditModal({ isOpen: false, booking: null });
       alert("Booking updated successfully!");
@@ -114,7 +130,28 @@ export function Admin() {
 
   const confirmDelete = async () => {
     if (deleteModal.bookingId) {
+      // Find the booking details before deleting to send notification
+      const targetBooking = bookings.find(b => b.id === deleteModal.bookingId);
+      
       await cancelBooking(deleteModal.bookingId);
+      
+      // Trigger Email Notification (Customer + Admin)
+      if (targetBooking) {
+        fetch('/api/notify-cancel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                email: targetBooking.email,
+                name: targetBooking.name,
+                company: targetBooking.companyName,
+                country: targetBooking.country,
+                date: targetBooking.date,
+                time: targetBooking.time,
+                inquiryType: targetBooking.inquiryType
+            })
+        }).catch(e => console.error("Failed to send cancel notification from Admin:", e));
+      }
+
       await refresh();
       setDeleteModal({ isOpen: false, bookingId: null });
       setShowSuccessToast(true);
@@ -169,6 +206,23 @@ export function Admin() {
         customerType: newBooking.customerType,
       }), timeout(8000)]);
       
+      // Trigger Email Notification (Customer + Admin)
+      // Re-using send-confirmation API which handles both
+      fetch('/api/send-confirmation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+              subscriber: newBooking.email,
+              name: newBooking.name,
+              meeting_date: newBooking.date,
+              meeting_time: newBooking.time,
+              company: newBooking.companyName,
+              country: newBooking.country,
+              inquiryType: newBooking.inquiryType,
+              manage_link: "" // Optional
+          })
+      }).catch(e => console.error("Failed to send creation notification from Admin:", e));
+
       await refresh();
       setShowAddModal(false);
       // Reset form

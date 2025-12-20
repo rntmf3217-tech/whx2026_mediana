@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { subscriber, name, meeting_date, meeting_time, manage_link } = req.body;
+  const { subscriber, name, meeting_date, meeting_time, manage_link, company, country, inquiryType } = req.body;
 
   if (!subscriber || !name || !meeting_date || !meeting_time) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -87,6 +87,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else {
         console.log("✅ Confirmation email triggered successfully");
     }
+
+    // --- Admin Notification ---
+    // Fire and forget (don't await strictly or block response too long)
+    fetch(`${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}/api/notify-admin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            type: "New Booking",
+            name: name,
+            company: company || "N/A",
+            country: country || "N/A",
+            date: meeting_date,
+            time: meeting_time,
+            inquiryType: inquiryType || "N/A"
+        })
+    }).catch(e => console.error("Admin notify failed:", e));
+    // --------------------------
 
     return res.status(200).json({ 
       success: true, 
