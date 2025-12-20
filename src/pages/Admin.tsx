@@ -9,6 +9,8 @@ import { Download, Calendar as CalendarIcon, List, Search, Trash2, Edit2, Plus, 
 import { format, parseISO, parse, addMinutes, isBefore } from "date-fns";
 import { cn } from "../lib/utils";
 
+import { sendConfirmationEmail } from "../lib/email";
+
 export function Admin() {
   const navigate = useNavigate();
   const [view, setView] = useState<"calendar" | "list">("calendar");
@@ -101,8 +103,10 @@ export function Admin() {
         date: editModal.booking.date,
         time: editModal.booking.time,
       });
-
-      // Trigger Email Notification (Customer + Admin)
+      await refresh();
+      setEditModal({ isOpen: false, booking: null });
+      
+      // Trigger Update Email (Customer Only)
       fetch('/api/notify-update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -110,15 +114,10 @@ export function Admin() {
               email: editModal.booking.email,
               name: editModal.booking.name,
               date: editModal.booking.date,
-              time: editModal.booking.time,
-              company: editModal.booking.companyName,
-              country: editModal.booking.country,
-              inquiryType: editModal.booking.inquiryType
+              time: editModal.booking.time
           })
-      }).catch(e => console.error("Failed to send update notification from Admin:", e));
+      }).catch(e => console.error("Failed to send update notification:", e));
 
-      await refresh();
-      setEditModal({ isOpen: false, booking: null });
       alert("Booking updated successfully!");
     } catch (error) {
       console.error("Error updating booking:", error);
@@ -130,28 +129,22 @@ export function Admin() {
 
   const confirmDelete = async () => {
     if (deleteModal.bookingId) {
-      // Find the booking details before deleting to send notification
-      const targetBooking = bookings.find(b => b.id === deleteModal.bookingId);
+      // Fetch booking details before deletion to get email (if needed)
+      // Since we only have ID, we rely on the backend or we should have stored the booking object
+      // But store.ts cancelBooking only takes ID.
+      // We can find the booking in local state 'bookings'
+      const bookingToDelete = bookings.find(b => b.id === deleteModal.bookingId);
       
-      await cancelBooking(deleteModal.bookingId);
-      
-      // Trigger Email Notification (Customer + Admin)
-      if (targetBooking) {
-        fetch('/api/notify-cancel', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                email: targetBooking.email,
-                name: targetBooking.name,
-                company: targetBooking.companyName,
-                country: targetBooking.country,
-                date: targetBooking.date,
-                time: targetBooking.time,
-                inquiryType: targetBooking.inquiryType
-            })
-        }).catch(e => console.error("Failed to send cancel notification from Admin:", e));
+      if (bookingToDelete) {
+          // Trigger Cancel Email (Customer Only)
+          fetch('/api/notify-cancel', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: bookingToDelete.email })
+          }).catch(e => console.error("Failed to send cancel notification:", e));
       }
 
+      await cancelBooking(deleteModal.bookingId);
       await refresh();
       setDeleteModal({ isOpen: false, bookingId: null });
       setShowSuccessToast(true);
@@ -206,25 +199,22 @@ export function Admin() {
         customerType: newBooking.customerType,
       }), timeout(8000)]);
       
-      // Trigger Email Notification (Customer + Admin)
-      // Re-using send-confirmation API which handles both
-      fetch('/api/send-confirmation', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-              subscriber: newBooking.email,
-              name: newBooking.name,
-              meeting_date: newBooking.date,
-              meeting_time: newBooking.time,
-              company: newBooking.companyName,
-              country: newBooking.country,
-              inquiryType: newBooking.inquiryType,
-              manage_link: "" // Optional
-          })
-      }).catch(e => console.error("Failed to send creation notification from Admin:", e));
-
       await refresh();
       setShowAddModal(false);
+      
+      // Trigger Emails (Customer Confirmation + Admin Notification)
+      // Note: Admin notification is handled inside sendConfirmationEmail -> api/send-confirmation
+      await sendConfirmationEmail({
+        name: newBooking.name,
+        email: newBooking.email,
+        companyName: newBooking.companyName,
+        country: newBooking.country,
+        inquiryType: newBooking.inquiryType,
+        date: newBooking.date,
+        time: newBooking.time,
+        bookingId: (newBooking as any).id // If addBooking returns ID
+      });
+
       // Reset form
       setNewBooking({
         date: EXHIBITION_DATES[0],

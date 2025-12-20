@@ -125,6 +125,9 @@ export function Home() {
         sendConfirmationEmail({
           name: booking.name,
           email: booking.email,
+          companyName: booking.companyName,
+          country: booking.country,
+          inquiryType: booking.inquiryType,
           date: booking.date,
           time: booking.time,
           bookingId: (newBooking as any).id

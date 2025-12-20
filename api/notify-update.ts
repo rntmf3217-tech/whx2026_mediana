@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email, name, date, time, company, country, inquiryType } = req.body;
+  const { email, name, date, time } = req.body;
   const STIBEE_API_KEY = process.env.VITE_STIBEE_ACCESS_TOKEN || process.env.STIBEE_ACCESS_TOKEN;
   const STIBEE_LIST_ID = process.env.VITE_STIBEE_LIST_ID || process.env.STIBEE_LIST_ID;
   const TRIGGER_URL = process.env.STIBEE_TRIGGER_UPDATE;
@@ -81,23 +81,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     console.log("Stibee Update Trigger Sent Successfully");
-
-    // --- Admin Notification ---
-    fetch(`${req.headers['x-forwarded-proto'] || 'https'}://${req.headers.host}/api/notify-admin`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            type: "Booking Updated",
-            name: name,
-            company: company || "N/A", // Need to ensure client sends these
-            country: country || "N/A",
-            date: date,
-            time: time,
-            inquiryType: inquiryType || "N/A"
-        })
-    }).catch(e => console.error("Admin notify failed:", e));
-    // --------------------------
-
     return res.status(200).json({ success: true });
 
   } catch (error: any) {

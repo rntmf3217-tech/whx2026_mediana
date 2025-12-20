@@ -3,12 +3,15 @@ import { format, parseISO } from "date-fns";
 interface EmailParams {
   name: string;
   email: string;
+  companyName: string;
+  country: string;
+  inquiryType: string;
   date: string;
   time: string;
   bookingId: string;
 }
 
-export async function sendConfirmationEmail({ name, email, date, time, bookingId }: EmailParams) {
+export async function sendConfirmationEmail({ name, email, companyName, country, inquiryType, date, time, bookingId }: EmailParams) {
   try {
     const formattedDate = format(parseISO(date), "MMMM d, yyyy"); // "March 10, 2026"
     
@@ -22,6 +25,9 @@ export async function sendConfirmationEmail({ name, email, date, time, bookingId
       body: JSON.stringify({
         subscriber: email,
         name,
+        company: companyName,
+        country,
+        inquiry_type: inquiryType,
         meeting_date: formattedDate,
         meeting_time: time,
         manage_link: `${window.location.origin}/my-booking?id=${bookingId}`,
