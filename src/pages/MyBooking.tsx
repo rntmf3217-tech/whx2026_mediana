@@ -35,33 +35,39 @@ export function MyBooking() {
 
   const confirmDelete = async () => {
     if (deleteModal.bookingId) {
-      // 1. Trigger Cancel Email (First)
+      // 1. Trigger Cancel Email (First) - Priority
       try {
-        console.log("Step 1: Sending cancel email...");
+        console.log("[Cancel Flow] Step 1: Sending cancel email trigger...");
         await fetch('/api/notify-cancel', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
         });
+        console.log("[Cancel Flow] Step 1: Email trigger sent.");
       } catch (e) {
-        console.error("Failed to send cancel notification (continuing to delete):", e);
+        console.error("[Cancel Flow] Failed to send cancel notification (continuing to delete):", e);
       }
 
       try {
         // 2. DB Reservation Delete
-        console.log("Step 2: Deleting booking from DB...");
+        console.log("[Cancel Flow] Step 2: Deleting booking from DB...");
         await cancelBooking(deleteModal.bookingId);
+        console.log("[Cancel Flow] Step 2: Booking deleted from DB.");
         
-        // 3. Stibee Subscriber Delete
+        // 3. Stibee Subscriber Delete (Last)
         try {
-            console.log("Step 3: Deleting subscriber from Stibee...");
+            console.log("[Cancel Flow] Step 3: Deleting subscriber from Stibee...");
+            // Add a small delay to ensure Stibee processes the trigger email before deletion
+            await new Promise(resolve => setTimeout(resolve, 1000)); 
+            
             await fetch('/api/delete-subscriber', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
             });
+            console.log("[Cancel Flow] Step 3: Subscriber deleted.");
         } catch (e) {
-            console.error("Failed to delete subscriber (non-fatal):", e);
+            console.error("[Cancel Flow] Failed to delete subscriber (non-fatal):", e);
         }
 
         const data = await getBookingsByEmail(email); // Refresh
