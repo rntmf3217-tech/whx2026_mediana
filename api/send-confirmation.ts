@@ -22,99 +22,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  // 1. 설정 (사용자가 제공한 정보 기반)
-  const STIBEE_API_KEY = "58c4936ec3b11ed206fa744bccde14cace1fafe71ed93b49b8b2ead92bbc0fe1c692fe09193ea4b4fd53fb30b83c2d1008f01572144a7f9a4b4b26059102ab07";
+  // Use environment variables
+  const STIBEE_API_KEY = process.env.STIBEE_ACCESS_TOKEN || "58c4936ec3b11ed206fa744bccde14cace1fafe71ed93b49b8b2ead92bbc0fe1c692fe09193ea4b4fd53fb30b83c2d1008f01572144a7f9a4b4b26059102ab07";
   const STIBEE_LIST_ID = (process.env.STIBEE_LIST_ID || "461332").trim();
-  // 사용자가 제공한 자동 메일 트리거 URL (API 발송용)
-  const STIBEE_AUTO_URL = "https://stibee.com/api/v1.0/auto/MDViMjczMTItYmI0Yy00ODk1LWI3MjUtNDkyZmI1YTY1MDMw";
-
-  // 디버깅
-  console.log(`[DEBUG] Processing Reservation for: ${subscriber} (${name})`);
 
   try {
-    // ---------------------------------------------------------
-    // Step 1: 구독자 주소록에 추가 (v1.0 API)
-    // ---------------------------------------------------------
-    console.log("Step 1: Adding subscriber to list (v1.0)...");
+    console.log(`[DEBUG] Processing Reservation for: ${subscriber} (${name})`);
     
-    // 중요: 사용자 정의 필드명에서 '$' 접두사 제거 (스티비 API 스펙 준수)
-    // 스티비 주소록에 'meeting_date', 'meeting_time', 'manage_link' 필드가 미리 생성되어 있어야 함
-    const addParams = {
-      eventOccuredBy: 'SUBSCRIBER',
-      confirmEmailYN: 'N',
-      subscribers: [
-        {
+    // Step 1: Add subscriber to list (v2 API)
+    console.log("Adding subscriber to Stibee list (v2)...");
+    
+    const subscriberResponse = await fetch(`https://api.stibee.com/v2/lists/${STIBEE_LIST_ID}/subscribers`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'AccessToken': STIBEE_API_KEY
+      },
+      body: JSON.stringify({
+        subscriber: {
           email: String(subscriber).trim(),
-          name: String(name).trim(),
-          // $ 접두사 제거
-          meeting_date: String(meeting_date).trim(),
-          meeting_time: String(meeting_time).trim(),
-          manage_link: String(manage_link || "").trim()
-        }
-      ]
-    };
-
-    const addResponse = await fetch(`https://stibee.com/api/v1.0/lists/${STIBEE_LIST_ID}/subscribers`, {
-      method: 'POST',
-      headers: {
-        'AccessToken': STIBEE_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(addParams)
+          status: 'subscribed',
+          marketingAllowed: true,
+          fields: {
+            name: String(name).trim(),
+            meeting_date: String(meeting_date).trim(),
+            meeting_time: String(meeting_time).trim(),
+            manage_link: String(manage_link || "").trim()
+          }
+        },
+        updateEnabled: true
+      })
     });
 
-    if (!addResponse.ok) {
-      const errorText = await addResponse.text();
-      console.warn(`Warning: Failed to add subscriber to list. Status: ${addResponse.status}, Msg: ${errorText}`);
-      // 500 에러 발생 시: 주소록 필드 설정(meeting_date 등)이 실제 스티비 주소록과 일치하는지 확인 필요
-    } else {
-      const addResult = await addResponse.json();
-      console.log("Subscriber added/updated:", addResult);
+    if (!subscriberResponse.ok) {
+      const errorData = await subscriberResponse.json();
+      console.error('Failed to add subscriber:', subscriberResponse.status, errorData);
+      throw new Error(`Subscriber add failed: ${subscriberResponse.status}`);
     }
 
-    // ---------------------------------------------------------
-    // Step 2: 자동 메일 트리거 (v1.0 Auto API)
-    // ---------------------------------------------------------
-    console.log("Step 2: Triggering Auto Email...");
-
-    const triggerParams = {
-      subscriber: String(subscriber).trim(),
-      name: String(name).trim(),
-      // $ 접두사 제거
-      meeting_date: String(meeting_date).trim(),
-      meeting_time: String(meeting_time).trim(),
-      manage_link: String(manage_link || "").trim()
-    };
-    
-    console.log("Trigger Payload:", JSON.stringify(triggerParams));
-
-    const triggerResponse = await fetch(STIBEE_AUTO_URL, {
-      method: 'POST',
-      headers: {
-        'AccessToken': STIBEE_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(triggerParams)
-    });
-
-    if (!triggerResponse.ok) {
-      const errorText = await triggerResponse.text();
-      console.error(`Auto Email Trigger Failed: ${triggerResponse.status} ${errorText}`);
-      
-      // 400 UnusableTrigger 에러에 대한 친절한 안내 추가
-      if (errorText.includes("UnusableTrigger")) {
-         throw new Error(`자동 이메일이 '발송 중(ON)' 상태인지 확인해주세요. (Error: ${errorText})`);
-      }
-      throw new Error(`Email Trigger Error: ${triggerResponse.status} ${errorText}`);
-    }
-
-    const triggerResult = await triggerResponse.json();
-    console.log("Auto Email Triggered Successfully:", triggerResult);
+    console.log('✅ Subscriber added successfully - Email will be sent automatically by Stibee');
 
     return res.status(200).json({ 
       success: true, 
-      message: "Reservation confirmed and email triggered.",
-      data: triggerResult
+      message: 'Confirmation email queued' 
     });
 
   } catch (error: any) {
