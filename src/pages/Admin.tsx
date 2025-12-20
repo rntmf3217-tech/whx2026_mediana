@@ -330,7 +330,28 @@ export function Admin() {
     if (confirm(`Are you sure you want to delete ${selectedIds.size} bookings? This cannot be undone.`)) {
       setIsSubmitting(true);
       try {
-        await Promise.all(Array.from(selectedIds).map(id => cancelBooking(id)));
+        const promises = Array.from(selectedIds).map(async (id) => {
+            // 1. Find booking to get email
+            const bookingToDelete = bookings.find(b => b.id === id);
+            
+            // 2. Send Notification
+            if (bookingToDelete) {
+                try {
+                    await fetch('/api/notify-cancel', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: bookingToDelete.email })
+                    });
+                } catch (e) {
+                    console.error(`Failed to send cancel notification for ${id}:`, e);
+                }
+            }
+
+            // 3. Delete Booking
+            return cancelBooking(id);
+        });
+
+        await Promise.all(promises);
         await refresh();
         setSelectedIds(new Set());
         alert("Selected bookings deleted successfully.");
