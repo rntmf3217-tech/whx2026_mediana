@@ -274,6 +274,19 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
             };
 
             await updateBooking(booking.id, updates);
+
+            // Trigger Update Email (Non-blocking)
+            fetch('/api/notify-update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    email: booking.email,
+                    name: booking.name,
+                    date: selectedDate,
+                    time: selectedTime
+                })
+            }).catch(e => console.error("Failed to send update notification:", e));
+
             onSuccess();
         } catch (error) {
             console.error(error);
