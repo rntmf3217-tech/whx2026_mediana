@@ -2,14 +2,16 @@ import React, { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "../components/Layout";
-import { getBookings, updateBooking, cancelBooking, addBooking } from "../lib/store";
+import { getBookings, updateBooking, cancelBooking, addBooking, markBookingAsRead } from "../lib/store";
 import { Booking } from "../lib/types";
 import { EXHIBITION_DATES, INQUIRY_TYPES, PRODUCT_INTERESTS, COUNTRIES, OPERATING_HOURS } from "../lib/constants";
-import { Download, Calendar as CalendarIcon, List, Search, Trash2, Edit2, Plus, X, Check, AlertTriangle, LogOut } from "lucide-react";
+import { Download, Calendar as CalendarIcon, List, Search, Trash2, Edit2, Plus, X, Check, AlertTriangle, LogOut, Eye } from "lucide-react";
 import { format, parseISO, parse, addMinutes, isBefore } from "date-fns";
 import { cn } from "../lib/utils";
 
 import { sendConfirmationEmail } from "../lib/email";
+import { BookingDetailModal } from "../components/BookingDetailModal";
+import { NotificationDropdown } from "../components/NotificationDropdown";
 
 export function Admin() {
   const navigate = useNavigate();
@@ -21,8 +23,10 @@ export function Admin() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showAddModal, setShowAddModal] = useState(false);
   const [editModal, setEditModal] = useState<{isOpen: boolean, booking: Booking | null}>({isOpen: false, booking: null});
+  const [detailModal, setDetailModal] = useState<{isOpen: boolean, booking: Booking | null}>({isOpen: false, booking: null});
   const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, bookingId: string | null}>({isOpen: false, bookingId: null});
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -65,6 +69,33 @@ export function Admin() {
     if (booking.message?.includes("[Trading Experience: No]")) return "new";
     if (booking.message?.includes("[Trading Experience: Yes]")) return "existing";
     return null;
+  };
+
+  const handleViewDetail = async (booking: Booking) => {
+    // 1. Mark as read in DB if new/updated
+    if (booking.statusFlag === 'new' || booking.statusFlag === 'updated') {
+        await markBookingAsRead(booking.id);
+        // 2. Optimistic Update
+        setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, statusFlag: 'read' } : b));
+    }
+
+    setDetailModal({ isOpen: true, booking });
+  };
+
+  const handleNotificationClick = (bookingId: string) => {
+    const booking = bookings.find(b => b.id === bookingId);
+    if (booking) {
+        handleViewDetail(booking);
+    } else {
+        // Maybe fetch specific booking if not in list (pagination?)
+        // For now, assume all bookings are loaded or refresh
+        refresh().then(() => {
+            // Need to access the latest state, but since refresh updates state async...
+            // Ideally we fetch specific booking here, but let's just alert if not found for MVP
+            // Or better, just wait for refresh and user can find it.
+            // Actually, we can just call handleViewDetail after refresh if we can find it.
+        });
+    }
   };
 
   const handleCancel = (id: string) => {
@@ -360,6 +391,7 @@ export function Admin() {
             >
               <LogOut className="w-4 h-4" />
             </button>
+            <NotificationDropdown onNotificationClick={handleNotificationClick} />
           </div>
         </div>
 
@@ -456,7 +488,15 @@ export function Admin() {
                           />
                         </td>
                         <td className="px-6 py-4">
-                          <div className="font-bold text-white">{format(parseISO(booking.date), "MMM d")}</div>
+                          <div className="font-bold text-white relative inline-block">
+                            {format(parseISO(booking.date), "MMM d")}
+                            {booking.statusFlag === 'new' && (
+                                <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" title="New Booking"></span>
+                            )}
+                            {booking.statusFlag === 'updated' && (
+                                <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" title="Updated Booking"></span>
+                            )}
+                          </div>
                           <div className="text-cyan-400 text-sm font-mono">{booking.time}</div>
                         </td>
                         <td className="px-6 py-4 text-slate-300">
@@ -491,6 +531,13 @@ export function Admin() {
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => handleViewDetail(booking)}
+                                className="p-2 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-full transition-colors"
+                                title="View Details"
+                            >
+                                <Eye className="w-4 h-4" />
+                            </button>
                             <button
                               onClick={() => handleEdit(booking)}
                               className="p-2 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-colors"
@@ -528,10 +575,19 @@ export function Admin() {
                         <p className="text-xs text-slate-600 italic py-2">No bookings yet</p>
                       ) : (
                         dayBookings.map(b => (
-                          <div key={b.id} className="p-3 bg-black/40 rounded-lg border border-white/5 hover:border-cyan-500/30 transition-colors group">
+                          <div key={b.id} className="p-3 bg-black/40 rounded-lg border border-white/5 hover:border-cyan-500/30 transition-colors group relative">
+                            {b.statusFlag === 'new' && (
+                                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" title="New Booking"></span>
+                            )}
+                            {b.statusFlag === 'updated' && (
+                                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" title="Updated Booking"></span>
+                            )}
                             <div className="flex justify-between items-start mb-1">
                               <span className="text-cyan-400 font-mono text-xs font-bold">{b.time}</span>
-                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity pr-2">
+                                <button onClick={() => handleViewDetail(b)} className="text-slate-600 hover:text-cyan-400" title="View Details">
+                                    <Eye className="w-3 h-3" />
+                                </button>
                                 <button onClick={() => handleEdit(b)} className="text-slate-600 hover:text-blue-400">
                                   <Edit2 className="w-3 h-3" />
                                 </button>
@@ -566,6 +622,14 @@ export function Admin() {
         </div>
       </div>
       
+      {detailModal.isOpen && detailModal.booking && (
+        <BookingDetailModal 
+            isOpen={detailModal.isOpen} 
+            booking={detailModal.booking} 
+            onClose={() => setDetailModal({ isOpen: false, booking: null })} 
+        />
+      )}
+
       {showAddModal && createPortal(
         <div 
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"

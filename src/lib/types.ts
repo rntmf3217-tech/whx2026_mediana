@@ -23,4 +23,14 @@ export interface Booking {
   date: string; // YYYY-MM-DD
   time: string; // HH:mm
   createdAt: string;
+  statusFlag?: 'new' | 'updated' | 'read';
+}
+
+export interface Notification {
+  id: string;
+  bookingId: string | null;
+  message: string;
+  createdAt: string;
+  isRead: boolean;
+  actionType: 'create' | 'update' | 'cancel';
 }

@@ -1,5 +1,5 @@
 import { supabase } from "./supabase";
-import { Booking } from "./types";
+import { Booking, Notification } from "./types";
 
 export async function getBookings(): Promise<Booking[]> {
   const { data, error } = await supabase
@@ -25,10 +25,55 @@ export async function getBookings(): Promise<Booking[]> {
     date: b.date,
     time: b.time,
     createdAt: b.created_at,
+    statusFlag: b.status_flag || 'read', // Default to read if null/undefined to avoid errors
   }));
 }
 
-export async function addBooking(booking: Omit<Booking, "id" | "createdAt">): Promise<Booking | null> {
+export async function markBookingAsRead(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("bookings")
+    .update({ status_flag: 'read' })
+    .eq("id", id);
+    
+  if (error) {
+    console.error("Error marking booking as read:", error);
+  }
+}
+
+export async function getNotifications(): Promise<Notification[]> {
+  const { data, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) {
+    console.error("Error fetching notifications:", error);
+    return [];
+  }
+
+  return data.map((n: any) => ({
+    id: n.id,
+    bookingId: n.booking_id,
+    message: n.message,
+    createdAt: n.created_at,
+    isRead: n.is_read,
+    actionType: n.action_type,
+  }));
+}
+
+export async function markNotificationAsRead(id: string): Promise<void> {
+  const { error } = await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("id", id);
+    
+  if (error) {
+    console.error("Error marking notification as read:", error);
+  }
+}
+
+export async function addBooking(booking: Omit<Booking, "id" | "createdAt" | "statusFlag">): Promise<Booking | null> {
   console.log("Adding booking:", booking);
   const dbBooking = {
     name: booking.name,
