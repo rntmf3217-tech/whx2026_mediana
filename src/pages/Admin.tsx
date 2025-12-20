@@ -23,9 +23,8 @@ export function Admin() {
   const [filterMeetingHost, setFilterMeetingHost] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showAddModal, setShowAddModal] = useState(false);
-  const [editModal, setEditModal] = useState<{isOpen: boolean, booking: Booking | null}>({isOpen: false, booking: null});
+  // Removed editModal and deleteModal state as they are now handled within BookingDetailModal or via direct handlers
   const [detailModal, setDetailModal] = useState<{isOpen: boolean, booking: Booking | null}>({isOpen: false, booking: null});
-  const [deleteModal, setDeleteModal] = useState<{isOpen: boolean, bookingId: string | null}>({isOpen: false, bookingId: null});
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
 
@@ -88,122 +87,100 @@ export function Admin() {
     if (booking) {
         handleViewDetail(booking);
     } else {
-        // Maybe fetch specific booking if not in list (pagination?)
-        // For now, assume all bookings are loaded or refresh
         refresh().then(() => {
-            // Need to access the latest state, but since refresh updates state async...
-            // Ideally we fetch specific booking here, but let's just alert if not found for MVP
-            // Or better, just wait for refresh and user can find it.
-            // Actually, we can just call handleViewDetail after refresh if we can find it.
+            // Logic to find booking after refresh could be added here
         });
     }
   };
 
-  const handleCancel = (id: string) => {
-    setDeleteModal({ isOpen: true, bookingId: id });
-  };
+  const handleBookingUpdate = async (id: string, updates: Partial<Booking>) => {
+    const originalBooking = bookings.find(b => b.id === id);
+    if (!originalBooking) return;
 
-  const handleEdit = (booking: Booking) => {
-    const inferredType = getCustomerType(booking);
-    const cleanedMessage = booking.message ? booking.message.replace(/\n\n\[Trading Experience: (Yes|No)\]/g, "").trim() : booking.message;
-    
-    setEditModal({ 
-      isOpen: true, 
-      booking: {
-        ...booking,
-        customerType: inferredType as any,
-        message: cleanedMessage
-      } 
-    });
-  };
-
-  const handleUpdateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editModal.booking) return;
-
-    setIsSubmitting(true);
     try {
-      await updateBooking(editModal.booking.id, {
-        name: editModal.booking.name,
-        email: editModal.booking.email,
-        companyName: editModal.booking.companyName,
-        country: editModal.booking.country,
-        productInterest: editModal.booking.productInterest,
-        inquiryType: editModal.booking.inquiryType,
-        message: editModal.booking.message,
-        customerType: editModal.booking.customerType,
-        date: editModal.booking.date,
-        time: editModal.booking.time,
-        meetingWith: editModal.booking.meetingWith,
-      });
+        await updateBooking(id, updates);
 
-      // Admin Update Notification
-      await createNotification({
-        bookingId: editModal.booking.id,
-        message: `Admin updated a booking for ${editModal.booking.companyName}.`,
-        actionType: 'update'
-      });
+        // Admin Update Notification
+        await createNotification({
+            bookingId: id,
+            message: `Admin updated a booking for ${updates.companyName || originalBooking.companyName}.`,
+            actionType: 'update'
+        });
 
-      await refresh();
-      setEditModal({ isOpen: false, booking: null });
-      
-      // Trigger Update Email (Customer Only)
-      fetch('/api/notify-update', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-              email: editModal.booking.email,
-              name: editModal.booking.name,
-              date: editModal.booking.date,
-              time: editModal.booking.time
-          })
-      }).catch(e => console.error("Failed to send update notification:", e));
+        // Check if we should send email to customer
+        // Logic: Send email ONLY if fields other than 'meetingWith' have changed
+        const relevantFields: (keyof Booking)[] = ['name', 'email', 'companyName', 'country', 'productInterest', 'inquiryType', 'message', 'customerType', 'date', 'time'];
+        const hasContentChanges = relevantFields.some(key => {
+             // Handle undefined/null comparisons safely
+             const originalVal = originalBooking[key] ?? "";
+             const newVal = updates[key] ?? originalBooking[key] ?? "";
+             return originalVal !== newVal;
+        });
 
-      alert("Booking updated successfully!");
+        if (hasContentChanges) {
+             // Trigger Update Email (Customer Only)
+            fetch('/api/notify-update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    email: updates.email || originalBooking.email,
+                    name: updates.name || originalBooking.name,
+                    date: updates.date || originalBooking.date,
+                    time: updates.time || originalBooking.time
+                })
+            }).catch(e => console.error("Failed to send update notification:", e));
+        }
+
+        await refresh();
+        
+        // Update the modal with new data
+        const updatedBookings = await getBookings();
+        const updatedBooking = updatedBookings.find(b => b.id === id);
+        if (updatedBooking) {
+            setDetailModal(prev => ({ ...prev, booking: updatedBooking }));
+        }
+
+        alert("Booking updated successfully!");
     } catch (error) {
-      console.error("Error updating booking:", error);
-      alert("Failed to update booking.");
-    } finally {
-      setIsSubmitting(false);
+        console.error("Error updating booking:", error);
+        alert("Failed to update booking.");
     }
   };
 
-  const confirmDelete = async () => {
-    if (deleteModal.bookingId) {
-      // Fetch booking details before deletion to get email (if needed)
-      // Since we only have ID, we rely on the backend or we should have stored the booking object
-      // But store.ts cancelBooking only takes ID.
-      // We can find the booking in local state 'bookings'
-      const bookingToDelete = bookings.find(b => b.id === deleteModal.bookingId);
-      
-      if (bookingToDelete) {
-          // Trigger Cancel Email (Customer Only)
-          fetch('/api/notify-cancel', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email: bookingToDelete.email })
-          }).catch(e => console.error("Failed to send cancel notification:", e));
-          
-          // Admin Cancel Notification
-          await createNotification({
+  const handleBookingDelete = async (id: string) => {
+    const bookingToDelete = bookings.find(b => b.id === id);
+    if (bookingToDelete) {
+         // Trigger Cancel Email (Customer Only)
+         fetch('/api/notify-cancel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: bookingToDelete.email })
+        }).catch(e => console.error("Failed to send cancel notification:", e));
+        
+        // Admin Cancel Notification
+        await createNotification({
             bookingId: bookingToDelete.id,
             message: `Admin cancelled a booking for ${bookingToDelete.companyName}.`,
             actionType: 'cancel'
-          });
-      }
+        });
+    }
 
-      await cancelBooking(deleteModal.bookingId);
-      await refresh();
-      setDeleteModal({ isOpen: false, bookingId: null });
-      setShowSuccessToast(true);
-      setTimeout(() => setShowSuccessToast(false), 3000);
+    try {
+        await cancelBooking(id);
+        await refresh();
+        setShowSuccessToast(true);
+        setTimeout(() => setShowSuccessToast(false), 3000);
+    } catch (error) {
+        console.error("Error deleting booking:", error);
+        alert("Failed to delete booking.");
     }
   };
 
   // Time slots generation for the selected date in modal
   const timeSlots = useMemo(() => {
     // Determine which date to use (add modal or edit modal)
-    const targetDate = editModal.isOpen && editModal.booking ? editModal.booking.date : newBooking.date;
+    // Simplified since we only use this for Add Modal now. Edit modal has its own logic or simply text input for now.
+    const targetDate = newBooking.date;
     
     if (!targetDate) return [];
     const { start, end } = OPERATING_HOURS[targetDate];
@@ -214,11 +191,9 @@ export function Admin() {
     while (isBefore(current, endTime)) {
       const timeStr = format(current, "HH:mm");
       // Check availability
-      // For edit mode, the current booking's time is also "available" (it's occupied by itself)
       const isBooked = bookings.some(b => 
         b.date === targetDate && 
-        b.time === timeStr && 
-        (editModal.isOpen && editModal.booking ? b.id !== editModal.booking.id : true)
+        b.time === timeStr
       );
       
       slots.push({
@@ -228,7 +203,7 @@ export function Admin() {
       current = addMinutes(current, 30);
     }
     return slots;
-  }, [newBooking.date, bookings, editModal.isOpen, editModal.booking]); // Updated dependencies
+  }, [newBooking.date, bookings]);
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -533,7 +508,6 @@ export function Admin() {
                     <th className="px-6 py-4">Contact</th>
                     <th className="px-6 py-4">Product</th>
                     <th className="px-6 py-4">Created At</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
@@ -583,9 +557,9 @@ export function Admin() {
                         <td className="px-6 py-4">
                           <span className={cn(
                             "inline-flex items-center px-2 py-1 rounded text-xs font-medium border",
-                            booking.meetingWith && booking.meetingWith !== '담당자 미선택' 
-                              ? "bg-purple-500/10 text-purple-400 border-purple-500/20" 
-                              : "bg-white/5 text-slate-500 border-white/10"
+                            !booking.meetingWith || booking.meetingWith === '담당자 미선택' 
+                              ? "bg-red-500/10 text-red-400 border-red-500/20" 
+                              : "bg-white/5 text-slate-300 border-white/10"
                           )}>
                             {booking.meetingWith || '담당자 미선택'}
                           </span>
@@ -611,24 +585,6 @@ export function Admin() {
                             {booking.statusFlag === 'updated' && (
                                 <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" title="Updated Booking"></span>
                             )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleEdit(booking); }}
-                              className="p-2 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-colors"
-                              title="Edit Booking"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleCancel(booking.id); }}
-                              className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-full transition-colors"
-                              title="Delete Booking"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
                           </div>
                         </td>
                       </tr>
@@ -665,14 +621,6 @@ export function Admin() {
                             )}
                             <div className="flex justify-between items-start mb-1">
                               <span className="text-cyan-400 font-mono text-xs font-bold">{b.time}</span>
-                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity pr-2">
-                                <button onClick={(e) => { e.stopPropagation(); handleEdit(b); }} className="text-slate-600 hover:text-blue-400">
-                                  <Edit2 className="w-3 h-3" />
-                                </button>
-                                <button onClick={(e) => { e.stopPropagation(); handleCancel(b.id); }} className="text-slate-600 hover:text-red-400">
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              </div>
                             </div>
                             <div className="font-medium text-white text-sm truncate flex items-center gap-2">
                               <span className="truncate">{b.companyName}</span>
@@ -687,7 +635,18 @@ export function Admin() {
                                 </span>
                               )}
                             </div>
-                            <div className="text-slate-500 text-xs truncate">{b.name}</div>
+                            <div className="text-slate-500 text-xs truncate mb-1">{b.name}</div>
+                            
+                            <div className="mt-2">
+                                <span className={cn(
+                                    "inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border",
+                                    !b.meetingWith || b.meetingWith === '담당자 미선택'
+                                    ? "bg-red-500/10 text-red-400 border-red-500/20"
+                                    : "bg-white/5 text-slate-400 border-white/10"
+                                )}>
+                                    {b.meetingWith || '담당자 미선택'}
+                                </span>
+                            </div>
                           </div>
                         ))
                       )}
@@ -705,6 +664,8 @@ export function Admin() {
             isOpen={detailModal.isOpen} 
             booking={detailModal.booking} 
             onClose={() => setDetailModal({ isOpen: false, booking: null })} 
+            onUpdate={handleBookingUpdate}
+            onDelete={handleBookingDelete}
         />
       )}
 
@@ -890,251 +851,6 @@ export function Admin() {
                   </>
                 )}
               </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {editModal.isOpen && editModal.booking && createPortal(
-        <div 
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-2xl flex flex-col max-h-[85dvh] shadow-2xl relative z-[10000]">
-            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-[#1a1a1a] z-10 shrink-0 rounded-t-2xl">
-              <h2 className="text-xl font-bold text-white">Edit Booking</h2>
-              <button 
-                onClick={() => setEditModal({ isOpen: false, booking: null })} 
-                className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain p-6 bg-[#1a1a1a]">
-              <form id="edit-booking-form" onSubmit={handleUpdateSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Read-only ID */}
-                  <div className="col-span-2 space-y-2">
-                    <label className="text-sm font-medium text-slate-400">Booking Reference (ID)</label>
-                    <input
-                      type="text"
-                      value={editModal.booking.id}
-                      disabled
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-slate-400 cursor-not-allowed font-mono text-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-400">Meeting With</label>
-                    <select
-                      value={editModal.booking.meetingWith || '담당자 미선택'}
-                      onChange={(e) => setEditModal({ ...editModal, booking: { ...editModal.booking!, meetingWith: e.target.value } })}
-                      className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-                    >
-                      {MEETING_HOSTS.map(host => (
-                        <option key={host} value={host}>{host}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-400">Customer Type</label>
-                    <select
-                      value={editModal.booking.customerType || ""}
-                      onChange={(e) => setEditModal({ ...editModal, booking: { ...editModal.booking!, customerType: e.target.value as any || undefined } })}
-                      className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-                    >
-                      <option value="">Select Type</option>
-                      <option value="new">New Customer</option>
-                      <option value="existing">Existing Customer</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-400">Date</label>
-                    <select
-                      value={editModal.booking.date}
-                      onChange={(e) => setEditModal({ ...editModal, booking: { ...editModal.booking!, date: e.target.value, time: "" } })}
-                      className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-                    >
-                      {EXHIBITION_DATES.map(date => (
-                        <option key={date} value={date}>{format(parseISO(date), "MMM d, yyyy")}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-400">Time</label>
-                    <select
-                      value={editModal.booking.time}
-                      onChange={(e) => setEditModal({ ...editModal, booking: { ...editModal.booking!, time: e.target.value } })}
-                      className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-                      required
-                    >
-                      <option value="">Select Time</option>
-                      {timeSlots.map(slot => (
-                        <option key={slot.time} value={slot.time} disabled={!slot.available}>
-                          {slot.time} {slot.available ? "" : "(Booked)"}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-400">Inquiry Type</label>
-                    <select
-                      value={editModal.booking.inquiryType}
-                      onChange={(e) => setEditModal({ ...editModal, booking: { ...editModal.booking!, inquiryType: e.target.value as any } })}
-                      className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-                      required
-                    >
-                      <option value="">Select Inquiry Type</option>
-                      {INQUIRY_TYPES.map(t => (
-                        <option key={t.type} value={t.type}>{t.type}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-400">Product Interest</label>
-                    <select
-                      value={editModal.booking.productInterest}
-                      onChange={(e) => setEditModal({ ...editModal, booking: { ...editModal.booking!, productInterest: e.target.value as any } })}
-                      className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-                      required
-                    >
-                      <option value="">Select Product</option>
-                      {PRODUCT_INTERESTS.map(p => (
-                        <option key={p} value={p}>{p}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-400">Name</label>
-                    <input
-                      type="text"
-                      value={editModal.booking.name}
-                      onChange={(e) => setEditModal({ ...editModal, booking: { ...editModal.booking!, name: e.target.value } })}
-                      className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-400">Company Name</label>
-                    <input
-                      type="text"
-                      value={editModal.booking.companyName}
-                      onChange={(e) => setEditModal({ ...editModal, booking: { ...editModal.booking!, companyName: e.target.value } })}
-                      className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-400">Country</label>
-                    <select
-                      value={editModal.booking.country}
-                      onChange={(e) => setEditModal({ ...editModal, booking: { ...editModal.booking!, country: e.target.value } })}
-                      className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-                      required
-                    >
-                      <option value="">Select Country</option>
-                      {COUNTRIES.map(c => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-400">Email</label>
-                    <input
-                      type="email"
-                      value={editModal.booking.email}
-                      onChange={(e) => setEditModal({ ...editModal, booking: { ...editModal.booking!, email: e.target.value } })}
-                      className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-400">Message (Optional)</label>
-                  <textarea
-                    value={editModal.booking.message || ""}
-                    onChange={(e) => setEditModal({ ...editModal, booking: { ...editModal.booking!, message: e.target.value } })}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none min-h-[100px]"
-                  />
-                </div>
-              </form>
-            </div>
-
-            <div className="flex justify-end gap-4 p-6 border-t border-white/10 shrink-0 bg-[#1a1a1a] rounded-b-2xl z-10">
-              <button
-                type="button"
-                onClick={() => setEditModal({ isOpen: false, booking: null })}
-                className="px-6 py-3 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all font-medium"
-                disabled={isSubmitting}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                form="edit-booking-form"
-                disabled={isSubmitting}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-xl hover:shadow-lg hover:shadow-cyan-500/20 transition-all font-bold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <>Saving...</>
-                ) : (
-                  <>
-                    <Check className="w-4 h-4" /> Update Booking
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
-
-      {deleteModal.isOpen && createPortal(
-        <div 
-          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-zoom-in">
-            <div className="flex flex-col items-center text-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-red-500" />
-              </div>
-              
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-white">Delete Booking</h3>
-                <p className="text-slate-400 text-sm">
-                  Are you sure you want to delete this booking? This action cannot be undone.
-                </p>
-              </div>
-
-              <div className="flex gap-3 w-full mt-4">
-                <button
-                  onClick={() => setDeleteModal({ isOpen: false, bookingId: null })}
-                  className="flex-1 px-4 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all font-medium border border-transparent hover:border-white/10"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all font-bold shadow-lg shadow-red-500/20"
-                >
-                  Delete
-                </button>
-              </div>
             </div>
           </div>
         </div>,
