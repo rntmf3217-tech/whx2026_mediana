@@ -109,7 +109,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
             if (adminListRes.ok) {
                 const adminData = await adminListRes.json();
-                const admins = adminData.value || []; // Stibee list API returns 'value' array
+                const admins = adminData || []; // Stibee list API returns array directly in test
                 console.log(`Found ${admins.length} admins to notify.`);
 
                 // Step 2.2: Trigger email for each admin
