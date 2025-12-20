@@ -33,52 +33,59 @@ export function MyBooking() {
     setEditModal({ isOpen: true, booking });
   };
 
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const confirmDelete = async () => {
-    if (deleteModal.bookingId) {
-      // 1. Trigger Cancel Email (First) - Priority
+    if (deleteModal.bookingId && !isDeleting) {
+      setIsDeleting(true);
       try {
-        console.log("[Cancel Flow] Step 1: Sending cancel email trigger...");
-        await fetch('/api/notify-cancel', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email })
-        });
-        console.log("[Cancel Flow] Step 1: Email trigger sent.");
-      } catch (e) {
-        console.error("[Cancel Flow] Failed to send cancel notification (continuing to delete):", e);
-      }
-
-      try {
-        // 2. DB Reservation Delete
-        console.log("[Cancel Flow] Step 2: Deleting booking from DB...");
-        await cancelBooking(deleteModal.bookingId);
-        console.log("[Cancel Flow] Step 2: Booking deleted from DB.");
-        
-        // 3. Stibee Subscriber Delete (Last)
+        // 1. Trigger Cancel Email (First) - Priority
         try {
-            console.log("[Cancel Flow] Step 3: Deleting subscriber from Stibee...");
-            // Add a small delay to ensure Stibee processes the trigger email before deletion
-            await new Promise(resolve => setTimeout(resolve, 1000)); 
-            
-            await fetch('/api/delete-subscriber', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email })
-            });
-            console.log("[Cancel Flow] Step 3: Subscriber deleted.");
+          console.log("[Cancel Flow] Step 1: Sending cancel email trigger...");
+          await fetch('/api/notify-cancel', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email })
+          });
+          console.log("[Cancel Flow] Step 1: Email trigger sent.");
         } catch (e) {
-            console.error("[Cancel Flow] Failed to delete subscriber (non-fatal):", e);
+          console.error("[Cancel Flow] Failed to send cancel notification (continuing to delete):", e);
         }
-
-        const data = await getBookingsByEmail(email); // Refresh
-        setBookings(data);
-        setDeleteModal({ isOpen: false, bookingId: null });
-        setToastMessage("Booking cancelled successfully.");
-        setShowSuccessToast(true);
-        setTimeout(() => setShowSuccessToast(false), 3000);
-      } catch (error) {
-        console.error("Error cancelling booking:", error);
-        alert("Failed to cancel booking. Please try again.");
+  
+        try {
+          // 2. DB Reservation Delete
+          console.log("[Cancel Flow] Step 2: Deleting booking from DB...");
+          await cancelBooking(deleteModal.bookingId);
+          console.log("[Cancel Flow] Step 2: Booking deleted from DB.");
+          
+          // 3. Stibee Subscriber Delete (Last)
+          try {
+              console.log("[Cancel Flow] Step 3: Deleting subscriber from Stibee...");
+              // Add a small delay to ensure Stibee processes the trigger email before deletion
+              await new Promise(resolve => setTimeout(resolve, 1000)); 
+              
+              await fetch('/api/delete-subscriber', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ email })
+              });
+              console.log("[Cancel Flow] Step 3: Subscriber deleted.");
+          } catch (e) {
+              console.error("[Cancel Flow] Failed to delete subscriber (non-fatal):", e);
+          }
+  
+          const data = await getBookingsByEmail(email); // Refresh
+          setBookings(data);
+          setDeleteModal({ isOpen: false, bookingId: null });
+          setToastMessage("Booking cancelled successfully.");
+          setShowSuccessToast(true);
+          setTimeout(() => setShowSuccessToast(false), 3000);
+        } catch (error) {
+          console.error("Error cancelling booking:", error);
+          alert("Failed to cancel booking. Please try again.");
+        }
+      } finally {
+        setIsDeleting(false);
       }
     }
   };
@@ -202,9 +209,13 @@ export function MyBooking() {
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all font-bold shadow-lg shadow-red-500/20"
+                  disabled={isDeleting}
+                  className={cn(
+                    "flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all font-bold shadow-lg shadow-red-500/20",
+                    isDeleting && "opacity-50 cursor-not-allowed"
+                  )}
                 >
-                  Yes, Cancel
+                  {isDeleting ? "Processing..." : "Yes, Cancel"}
                 </button>
               </div>
             </div>
