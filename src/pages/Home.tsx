@@ -120,7 +120,7 @@ export function Home() {
         
         // Customer Create Notification
         await createNotification({
-            bookingId: newBooking.id,
+            bookingId: (newBooking as any).id,
             message: `${booking.companyName} created a booking.`,
             actionType: 'create'
         });

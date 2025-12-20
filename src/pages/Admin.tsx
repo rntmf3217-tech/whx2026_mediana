@@ -250,7 +250,7 @@ export function Admin() {
       if (newBookingResult) {
         // Admin Create Notification
         await createNotification({
-            bookingId: newBookingResult.id,
+            bookingId: (newBookingResult as any).id,
             message: `Admin created a booking for ${newBooking.companyName}.`,
             actionType: 'create'
         });
