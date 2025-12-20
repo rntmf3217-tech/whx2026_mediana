@@ -66,3 +66,12 @@ export const COUNTRIES = [
   "Yemen",
   "Zambia", "Zimbabwe"
 ];
+
+export const MEETING_HOSTS = [
+  "담당자 미선택",
+  "Michael",
+  "Bruce",
+  "Anna",
+  "Walter",
+  "Ashwin"
+] as const;

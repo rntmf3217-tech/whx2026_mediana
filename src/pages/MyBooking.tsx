@@ -275,6 +275,13 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
 
             await updateBooking(booking.id, updates);
 
+            // Customer Update Notification
+            await createNotification({
+                bookingId: booking.id,
+                message: `${booking.companyName} updated a booking.`,
+                actionType: 'update'
+            });
+
             // Trigger Update Email (Non-blocking)
             fetch('/api/notify-update', {
                 method: 'POST',

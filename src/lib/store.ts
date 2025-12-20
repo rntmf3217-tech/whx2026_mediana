@@ -26,6 +26,7 @@ export async function getBookings(): Promise<Booking[]> {
     time: b.time,
     createdAt: b.created_at,
     statusFlag: b.status_flag || 'read', // Default to read if null/undefined to avoid errors
+    meetingWith: b.meeting_with || '담당자 미선택',
   }));
 }
 
@@ -73,6 +74,25 @@ export async function markNotificationAsRead(id: string): Promise<void> {
   }
 }
 
+export async function createNotification(notification: {
+  bookingId: string | null;
+  message: string;
+  actionType: 'create' | 'update' | 'cancel';
+}): Promise<void> {
+  const { error } = await supabase
+    .from("notifications")
+    .insert([{
+      booking_id: notification.bookingId,
+      message: notification.message,
+      action_type: notification.actionType,
+      is_read: false
+    }]);
+
+  if (error) {
+    console.error("Error creating notification:", error);
+  }
+}
+
 export async function addBooking(booking: Omit<Booking, "id" | "createdAt" | "statusFlag">): Promise<Booking | null> {
   console.log("Adding booking:", booking);
   const dbBooking = {
@@ -86,6 +106,7 @@ export async function addBooking(booking: Omit<Booking, "id" | "createdAt" | "st
     customer_type: booking.customerType,
     date: booking.date,
     time: booking.time,
+    meeting_with: '담당자 미선택', // Default value
   };
   console.log("DB Payload:", dbBooking);
 
@@ -127,6 +148,7 @@ export async function addBooking(booking: Omit<Booking, "id" | "createdAt" | "st
       date: b.date,
       time: b.time,
       createdAt: b.created_at,
+      meetingWith: b.meeting_with || '담당자 미선택',
     };
   } catch (e) {
     console.error("Exception in addBooking:", e);
@@ -201,6 +223,7 @@ export async function getBookingsByDate(date: string): Promise<Booking[]> {
     date: b.date,
     time: b.time,
     createdAt: b.created_at,
+    meetingWith: b.meeting_with || '담당자 미선택',
   }));
 }
 
@@ -230,5 +253,6 @@ export async function getBookingsByEmail(email: string): Promise<Booking[]> {
     date: b.date,
     time: b.time,
     createdAt: b.created_at,
+    meetingWith: b.meeting_with || '담당자 미선택',
   }));
 }

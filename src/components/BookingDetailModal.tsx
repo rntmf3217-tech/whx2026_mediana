@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Calendar, Clock, MapPin, Building, User, Mail, MessageSquare, Tag, Copy, Check } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, Building, User, Mail, MessageSquare, Tag, Copy, Check, Users } from 'lucide-react';
 import { Booking } from '../lib/types';
 import { format, parseISO } from 'date-fns';
 
@@ -96,6 +96,13 @@ Created At: ${format(parseISO(booking.createdAt), "yyyy-MM-dd HH:mm:ss")}
 
             {/* Schedule Info */}
             <div className="grid grid-cols-2 gap-4 bg-white/5 p-4 rounded-xl border border-white/5">
+                <div className="space-y-1 col-span-2 pb-2 border-b border-white/5 mb-2">
+                    <label className="text-xs text-slate-500 font-medium uppercase">Meeting With</label>
+                    <div className="flex items-center gap-2 text-white font-medium text-lg">
+                        <Users className="w-5 h-5 text-purple-400" />
+                        {booking.meetingWith || '담당자 미선택'}
+                    </div>
+                </div>
                 <div className="space-y-1">
                     <label className="text-xs text-slate-500 font-medium uppercase">Date</label>
                     <div className="flex items-center gap-2 text-white font-medium">

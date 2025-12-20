@@ -4,7 +4,7 @@ import { format, parseISO, addMinutes, isBefore, parse } from "date-fns";
 import { Calendar as CalendarIcon, Clock, CheckCircle, ChevronDown, NotebookText, Pencil, MapPin, ArrowRight, Star, Zap, Shield, ExternalLink, X } from "lucide-react";
 import { Layout } from "../components/Layout";
 import { EXHIBITION_DATES, OPERATING_HOURS, INQUIRY_TYPES, PRODUCT_INTERESTS, COUNTRIES } from "../lib/constants";
-import { addBooking, getBookingsByDate } from "../lib/store";
+import { addBooking, getBookingsByDate, createNotification } from "../lib/store";
 import { Booking } from "../lib/types";
 import { sendConfirmationEmail } from "../lib/email";
 import { cn } from "../lib/utils";
@@ -115,7 +115,16 @@ export function Home() {
       const newBooking = await Promise.race([addBooking(booking), timeout(8000)]);
       console.log("Booking created:", newBooking);
       
-      if (newBooking) setBookingId((newBooking as any).id || "");
+      if (newBooking) {
+        setBookingId((newBooking as any).id || "");
+        
+        // Customer Create Notification
+        await createNotification({
+            bookingId: newBooking.id,
+            message: `${booking.companyName} created a booking.`,
+            actionType: 'create'
+        });
+      }
       setSubmitted(true);
       
       // Send confirmation email

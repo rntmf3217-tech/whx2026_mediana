@@ -24,6 +24,7 @@ export interface Booking {
   time: string; // HH:mm
   createdAt: string;
   statusFlag?: 'new' | 'updated' | 'read';
+  meetingWith?: string;
 }
 
 export interface Notification {

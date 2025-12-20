@@ -2,10 +2,10 @@ import React, { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "../components/Layout";
-import { getBookings, updateBooking, cancelBooking, addBooking, markBookingAsRead } from "../lib/store";
+import { getBookings, updateBooking, cancelBooking, addBooking, markBookingAsRead, createNotification } from "../lib/store";
 import { Booking } from "../lib/types";
-import { EXHIBITION_DATES, INQUIRY_TYPES, PRODUCT_INTERESTS, COUNTRIES, OPERATING_HOURS } from "../lib/constants";
-import { Download, Calendar as CalendarIcon, List, Search, Trash2, Edit2, Plus, X, Check, AlertTriangle, LogOut, Eye } from "lucide-react";
+import { EXHIBITION_DATES, INQUIRY_TYPES, PRODUCT_INTERESTS, COUNTRIES, OPERATING_HOURS, MEETING_HOSTS } from "../lib/constants";
+import { Download, Calendar as CalendarIcon, List, Search, Trash2, Edit2, Plus, X, Check, AlertTriangle, LogOut, Eye, Users } from "lucide-react";
 import { format, parseISO, parse, addMinutes, isBefore } from "date-fns";
 import { cn } from "../lib/utils";
 
@@ -20,6 +20,7 @@ export function Admin() {
   const [filter, setFilter] = useState("");
   const [filterProduct, setFilterProduct] = useState("");
   const [filterCustomerType, setFilterCustomerType] = useState("");
+  const [filterMeetingHost, setFilterMeetingHost] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showAddModal, setShowAddModal] = useState(false);
   const [editModal, setEditModal] = useState<{isOpen: boolean, booking: Booking | null}>({isOpen: false, booking: null});
@@ -133,7 +134,16 @@ export function Admin() {
         customerType: editModal.booking.customerType,
         date: editModal.booking.date,
         time: editModal.booking.time,
+        meetingWith: editModal.booking.meetingWith,
       });
+
+      // Admin Update Notification
+      await createNotification({
+        bookingId: editModal.booking.id,
+        message: `Admin updated a booking for ${editModal.booking.companyName}.`,
+        actionType: 'update'
+      });
+
       await refresh();
       setEditModal({ isOpen: false, booking: null });
       
@@ -173,6 +183,13 @@ export function Admin() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ email: bookingToDelete.email })
           }).catch(e => console.error("Failed to send cancel notification:", e));
+          
+          // Admin Cancel Notification
+          await createNotification({
+            bookingId: bookingToDelete.id,
+            message: `Admin cancelled a booking for ${bookingToDelete.companyName}.`,
+            actionType: 'cancel'
+          });
       }
 
       await cancelBooking(deleteModal.bookingId);
@@ -223,12 +240,21 @@ export function Admin() {
     setIsSubmitting(true);
     try {
       const timeout = (ms: number) => new Promise((_, rej) => setTimeout(() => rej(new Error("Request timeout")), ms));
-      await Promise.race([addBooking({
+      const newBookingResult = await Promise.race([addBooking({
         ...newBooking,
         inquiryType: newBooking.inquiryType as any,
         productInterest: newBooking.productInterest as any,
         customerType: newBooking.customerType,
       }), timeout(8000)]);
+      
+      if (newBookingResult) {
+        // Admin Create Notification
+        await createNotification({
+            bookingId: newBookingResult.id,
+            message: `Admin created a booking for ${newBooking.companyName}.`,
+            actionType: 'create'
+        });
+      }
       
       await refresh();
       setShowAddModal(false);
@@ -273,11 +299,11 @@ export function Admin() {
       ? bookings.filter(b => selectedIds.has(b.id))
       : bookings;
 
-    const headers = ["ID", "Name", "Email", "Company", "Country", "Product", "Inquiry Type", "Customer Type", "Date", "Time", "Message", "Created At"];
+    const headers = ["ID", "Name", "Email", "Company", "Country", "Product", "Inquiry Type", "Customer Type", "Meeting With", "Date", "Time", "Message", "Created At"];
     const rows = targetBookings.map(b => {
       const cleanedMessage = b.message ? b.message.replace(/\n\n\[Trading Experience: (Yes|No)\]/g, "").trim() : "";
       return [
-        b.id, b.name, b.email, b.companyName, b.country, b.productInterest, b.inquiryType, getCustomerType(b) || "", b.date, b.time, `"${cleanedMessage}"`, b.createdAt || ""
+        b.id, b.name, b.email, b.companyName, b.country, b.productInterest, b.inquiryType, getCustomerType(b) || "", b.meetingWith || "담당자 미선택", b.date, b.time, `"${cleanedMessage}"`, b.createdAt || ""
       ];
     });
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
@@ -301,7 +327,8 @@ export function Admin() {
       b.email.toLowerCase().includes(filter.toLowerCase());
     const matchesProduct = filterProduct ? b.productInterest === filterProduct : true;
     const matchesType = filterCustomerType ? getCustomerType(b) === filterCustomerType : true;
-    return matchesSearch && matchesProduct && matchesType;
+    const matchesHost = filterMeetingHost ? (b.meetingWith || '담당자 미선택') === filterMeetingHost : true;
+    return matchesSearch && matchesProduct && matchesType && matchesHost;
   }).sort((a, b) => {
     const dateCompare = a.date.localeCompare(b.date);
     if (dateCompare !== 0) return dateCompare;
@@ -345,6 +372,13 @@ export function Admin() {
                 } catch (e) {
                     console.error(`Failed to send cancel notification for ${id}:`, e);
                 }
+
+                // Admin Bulk Cancel Notification
+                await createNotification({
+                    bookingId: bookingToDelete.id,
+                    message: `Admin cancelled a booking for ${bookingToDelete.companyName}.`,
+                    actionType: 'cancel'
+                });
             }
 
             // 3. Delete Booking
@@ -455,6 +489,17 @@ export function Admin() {
                 ))}
               </select>
 
+              <select
+                value={filterMeetingHost}
+                onChange={(e) => setFilterMeetingHost(e.target.value)}
+                className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 w-full md:w-40"
+              >
+                <option value=""> 담당자 </option>
+                {MEETING_HOSTS.map(host => (
+                  <option key={host} value={host}>{host}</option>
+                ))}
+              </select>
+
               <div className="relative w-full md:w-72">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
@@ -483,6 +528,7 @@ export function Admin() {
                     </th>
                     <th className="px-6 py-4">Date/Time</th>
                     <th className="px-6 py-4">Company</th>
+                    <th className="px-6 py-4">Meeting With</th>
                     <th className="px-6 py-4">Country</th>
                     <th className="px-6 py-4">Contact</th>
                     <th className="px-6 py-4">Product</th>
@@ -533,6 +579,16 @@ export function Admin() {
                               </span>
                             )}
                           </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={cn(
+                            "inline-flex items-center px-2 py-1 rounded text-xs font-medium border",
+                            booking.meetingWith && booking.meetingWith !== '담당자 미선택' 
+                              ? "bg-purple-500/10 text-purple-400 border-purple-500/20" 
+                              : "bg-white/5 text-slate-500 border-white/10"
+                          )}>
+                            {booking.meetingWith || '담당자 미선택'}
+                          </span>
                         </td>
                         <td className="px-6 py-4 text-slate-300">
                           {booking.country}
@@ -869,6 +925,19 @@ export function Admin() {
                       disabled
                       className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-slate-400 cursor-not-allowed font-mono text-sm"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-400">Meeting With</label>
+                    <select
+                      value={editModal.booking.meetingWith || '담당자 미선택'}
+                      onChange={(e) => setEditModal({ ...editModal, booking: { ...editModal.booking!, meetingWith: e.target.value } })}
+                      className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+                    >
+                      {MEETING_HOSTS.map(host => (
+                        <option key={host} value={host}>{host}</option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="space-y-2">
