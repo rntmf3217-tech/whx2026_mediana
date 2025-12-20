@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Calendar, Clock, MapPin, Building, User, Mail, MessageSquare, Tag, Copy, Check, Users, Edit2, Save, Trash2, AlertTriangle } from 'lucide-react';
 import { Booking } from '../lib/types';
-import { format, parseISO } from 'date-fns';
-import { COUNTRIES, MEETING_HOSTS, PRODUCT_INTERESTS, INQUIRY_TYPES, EXHIBITION_DATES } from '../lib/constants';
+import { format, parseISO, addMinutes, parse, isBefore } from 'date-fns';
+import { COUNTRIES, MEETING_HOSTS, PRODUCT_INTERESTS, INQUIRY_TYPES, EXHIBITION_DATES, OPERATING_HOURS } from '../lib/constants';
 
 interface BookingDetailModalProps {
   isOpen: boolean;
@@ -29,6 +29,24 @@ export function BookingDetailModal({ isOpen, booking, onClose, onUpdate, onDelet
       setShowDeleteConfirm(false);
     }
   }, [booking]);
+
+  const timeSlots = React.useMemo(() => {
+    const dateStr = formData.date;
+    if (!dateStr || !OPERATING_HOURS[dateStr]) return [];
+    
+    const { start, end } = OPERATING_HOURS[dateStr];
+    const slots = [];
+    // Use an arbitrary date for parsing time
+    const baseDate = new Date(); 
+    let current = parse(start, "HH:mm", baseDate);
+    const endTime = parse(end, "HH:mm", baseDate);
+
+    while (isBefore(current, endTime)) {
+      slots.push(format(current, "HH:mm"));
+      current = addMinutes(current, 30);
+    }
+    return slots;
+  }, [formData.date]);
 
   if (!isOpen || !booking) return null;
 
@@ -267,12 +285,15 @@ Created At: ${format(parseISO(booking.createdAt), "yyyy-MM-dd HH:mm:ss")}
                     <div className="space-y-1">
                         <label className="text-xs text-slate-500 font-medium uppercase">Time</label>
                          {isEditing ? (
-                            <input 
-                                type="time" // Simple time input for now, or could duplicate the slot logic but simpler to just text edit or select
+                            <select 
                                 value={formData.time}
                                 onChange={(e) => handleChange('time', e.target.value)}
                                 className="w-full bg-black/40 border border-white/10 rounded px-2 py-1 text-white focus:border-cyan-400 focus:outline-none text-sm"
-                            />
+                            >
+                                {timeSlots.map(time => (
+                                    <option key={time} value={time}>{time}</option>
+                                ))}
+                            </select>
                         ) : (
                             <div className="flex items-center gap-2 text-white font-medium">
                                 <Clock className="w-4 h-4 text-cyan-500" />

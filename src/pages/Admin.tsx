@@ -479,7 +479,7 @@ export function Admin() {
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="text"
-                  placeholder="Search bookings..."
+                  placeholder="Search by company or customer name..."
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
                   className="pl-10 pr-4 py-2.5 bg-black/40 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400 w-full transition-colors placeholder:text-slate-600"
@@ -572,7 +572,7 @@ export function Admin() {
                           <div className="text-slate-500 text-xs">{booking.email}</div>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                          <span className="text-slate-300 text-xs font-medium">
                             {booking.productInterest}
                           </span>
                         </td>
