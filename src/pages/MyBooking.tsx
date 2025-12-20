@@ -35,15 +35,34 @@ export function MyBooking() {
 
   const confirmDelete = async () => {
     if (deleteModal.bookingId) {
+      // 1. Trigger Cancel Email (First)
       try {
-        await cancelBooking(deleteModal.bookingId);
-        
-        // Trigger Cancel Email (Non-blocking)
-        fetch('/api/notify-cancel', {
+        console.log("Step 1: Sending cancel email...");
+        await fetch('/api/notify-cancel', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email })
-        }).catch(e => console.error("Failed to send cancel notification:", e));
+        });
+      } catch (e) {
+        console.error("Failed to send cancel notification (continuing to delete):", e);
+      }
+
+      try {
+        // 2. DB Reservation Delete
+        console.log("Step 2: Deleting booking from DB...");
+        await cancelBooking(deleteModal.bookingId);
+        
+        // 3. Stibee Subscriber Delete
+        try {
+            console.log("Step 3: Deleting subscriber from Stibee...");
+            await fetch('/api/delete-subscriber', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+        } catch (e) {
+            console.error("Failed to delete subscriber (non-fatal):", e);
+        }
 
         const data = await getBookingsByEmail(email); // Refresh
         setBookings(data);
