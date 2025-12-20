@@ -57,9 +57,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           marketingAllowed: true,
           fields: {
             name: String(name).trim(),
-            company: String(company || "").trim(),
-            country: String(country || "").trim(),
-            inquiry_type: String(inquiry_type || "").trim(),
+            // company: String(company || "").trim(), // Stibee v2 API doesn't support 'company' unless defined in address book
+            // country: String(country || "").trim(), // Same for country
+            // inquiry_type: String(inquiry_type || "").trim(), // Same for inquiry_type
             meeting_date: String(meeting_date).trim(),
             meeting_time: String(meeting_time).trim(),
             manage_link: String(manage_link || "").trim()
