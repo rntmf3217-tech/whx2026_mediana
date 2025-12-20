@@ -35,13 +35,26 @@ export function MyBooking() {
 
   const confirmDelete = async () => {
     if (deleteModal.bookingId) {
-      await cancelBooking(deleteModal.bookingId);
-      const data = await getBookingsByEmail(email); // Refresh
-      setBookings(data);
-      setDeleteModal({ isOpen: false, bookingId: null });
-      setToastMessage("Booking cancelled successfully.");
-      setShowSuccessToast(true);
-      setTimeout(() => setShowSuccessToast(false), 3000);
+      try {
+        await cancelBooking(deleteModal.bookingId);
+        
+        // Trigger Cancel Email (Non-blocking)
+        fetch('/api/notify-cancel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        }).catch(e => console.error("Failed to send cancel notification:", e));
+
+        const data = await getBookingsByEmail(email); // Refresh
+        setBookings(data);
+        setDeleteModal({ isOpen: false, bookingId: null });
+        setToastMessage("Booking cancelled successfully.");
+        setShowSuccessToast(true);
+        setTimeout(() => setShowSuccessToast(false), 3000);
+      } catch (error) {
+        console.error("Error cancelling booking:", error);
+        alert("Failed to cancel booking. Please try again.");
+      }
     }
   };
 
