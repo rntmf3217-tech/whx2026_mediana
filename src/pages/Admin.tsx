@@ -469,13 +469,13 @@ export function Admin() {
                 onChange={(e) => setFilterMeetingHost(e.target.value)}
                 className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 w-full md:w-40"
               >
-                <option value=""> 담당자 </option>
+                <option value="">모든 담당자</option>
                 {MEETING_HOSTS.map(host => (
                   <option key={host} value={host}>{host}</option>
                 ))}
               </select>
 
-              <div className="relative w-full md:w-72">
+              <div className="relative w-full md:w-96">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                 <input
                   type="text"
