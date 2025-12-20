@@ -41,17 +41,19 @@ export function BookingDetailModal({ isOpen, booking, onClose }: BookingDetailMo
         </div>
         
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
-            {/* Status Badge */}
-            <div className="flex items-center gap-4">
-                <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm font-mono text-slate-300">
-                    ID: {booking.id.split('-')[0]}...
+            {/* Status Badge & ID */}
+            <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                    {booking.customerType === 'new' && (
+                        <span className="px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 text-xs font-bold border border-cyan-500/20 shrink-0">NEW CUSTOMER</span>
+                    )}
+                    {booking.customerType === 'existing' && (
+                        <span className="px-2 py-1 rounded bg-slate-500/10 text-slate-400 text-xs font-bold border border-slate-500/20 shrink-0">EXISTING CUSTOMER</span>
+                    )}
+                    <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-sm font-mono text-slate-300 whitespace-nowrap overflow-visible">
+                        Ref: {booking.id}
+                    </div>
                 </div>
-                {booking.customerType === 'new' && (
-                    <span className="px-2 py-1 rounded bg-cyan-500/10 text-cyan-400 text-xs font-bold border border-cyan-500/20">NEW CUSTOMER</span>
-                )}
-                {booking.customerType === 'existing' && (
-                    <span className="px-2 py-1 rounded bg-slate-500/10 text-slate-400 text-xs font-bold border border-slate-500/20">EXISTING CUSTOMER</span>
-                )}
             </div>
 
             {/* Schedule Info */}

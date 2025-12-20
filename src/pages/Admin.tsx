@@ -478,24 +478,23 @@ export function Admin() {
                     </tr>
                   ) : (
                     filteredBookings.map((booking) => (
-                      <tr key={booking.id} className={cn("group hover:bg-white/5 transition-colors", selectedIds.has(booking.id) && "bg-cyan-500/5")}>
+                      <tr 
+                        key={booking.id} 
+                        onClick={() => handleViewDetail(booking)}
+                        className={cn("group hover:bg-white/5 transition-colors cursor-pointer", selectedIds.has(booking.id) && "bg-cyan-500/5")}
+                      >
                         <td className="px-6 py-4">
                           <input 
                             type="checkbox" 
                             checked={selectedIds.has(booking.id)}
+                            onClick={(e) => e.stopPropagation()}
                             onChange={() => handleSelectOne(booking.id)}
                             className="rounded border-white/20 bg-black/40 text-cyan-500 focus:ring-offset-black focus:ring-cyan-500/20 w-4 h-4 cursor-pointer"
                           />
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="font-bold text-white relative inline-block">
+                        <td className="px-6 py-4 relative">
+                          <div className="font-bold text-white inline-block">
                             {format(parseISO(booking.date), "MMM d")}
-                            {booking.statusFlag === 'new' && (
-                                <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" title="New Booking"></span>
-                            )}
-                            {booking.statusFlag === 'updated' && (
-                                <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" title="Updated Booking"></span>
-                            )}
                           </div>
                           <div className="text-cyan-400 text-sm font-mono">{booking.time}</div>
                         </td>
@@ -526,27 +525,28 @@ export function Admin() {
                             {booking.productInterest}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-slate-500 text-xs">
-                          {booking.createdAt ? format(parseISO(booking.createdAt), "MMM d, HH:mm") : "-"}
+                        <td className="px-6 py-4 text-slate-500 text-xs relative">
+                          <div className="inline-block relative">
+                            {booking.createdAt ? format(parseISO(booking.createdAt), "MMM d, HH:mm") : "-"}
+                            {booking.statusFlag === 'new' && (
+                                <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" title="New Booking"></span>
+                            )}
+                            {booking.statusFlag === 'updated' && (
+                                <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" title="Updated Booking"></span>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex justify-end gap-2">
                             <button
-                                onClick={() => handleViewDetail(booking)}
-                                className="p-2 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-full transition-colors"
-                                title="View Details"
-                            >
-                                <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleEdit(booking)}
+                              onClick={(e) => { e.stopPropagation(); handleEdit(booking); }}
                               className="p-2 text-slate-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-full transition-colors"
                               title="Edit Booking"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleCancel(booking.id)}
+                              onClick={(e) => { e.stopPropagation(); handleCancel(booking.id); }}
                               className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-full transition-colors"
                               title="Delete Booking"
                             >

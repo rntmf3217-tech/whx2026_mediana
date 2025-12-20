@@ -119,7 +119,7 @@ export function NotificationDropdown({ onNotificationClick }: NotificationDropdo
                     )}
                   >
                     <div className={cn(
-                        "w-10 h-10 rounded-full flex items-center justify-center shrink-0 border text-[10px] font-bold uppercase",
+                        "px-2 py-1 rounded flex items-center justify-center shrink-0 border text-[10px] font-bold uppercase h-fit",
                         getActionColor(notification.actionType)
                     )}>
                         {getActionIcon(notification.actionType)}
