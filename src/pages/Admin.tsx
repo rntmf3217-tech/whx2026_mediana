@@ -108,16 +108,16 @@ export function Admin() {
         });
 
         // Check if we should send email to customer
-        // Logic: Send email ONLY if fields other than 'meetingWith' have changed
-        const relevantFields: (keyof Booking)[] = ['name', 'email', 'companyName', 'country', 'productInterest', 'inquiryType', 'message', 'customerType', 'date', 'time'];
-        const hasContentChanges = relevantFields.some(key => {
+        // Logic: Send email ONLY if date or time has changed
+        const notifyFields: (keyof Booking)[] = ['date', 'time'];
+        const shouldNotifyCustomer = notifyFields.some(key => {
              // Handle undefined/null comparisons safely
              const originalVal = originalBooking[key] ?? "";
              const newVal = updates[key] ?? originalBooking[key] ?? "";
              return originalVal !== newVal;
         });
 
-        if (hasContentChanges) {
+        if (shouldNotifyCustomer) {
              // Trigger Update Email (Customer Only)
             fetch('/api/notify-update', {
                 method: 'POST',

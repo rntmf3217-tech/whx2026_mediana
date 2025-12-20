@@ -176,6 +176,7 @@ export async function updateBooking(id: string, updates: Partial<Booking>): Prom
   if (updates.customerType) snakeCaseUpdates.customer_type = updates.customerType;
   if (updates.date) snakeCaseUpdates.date = updates.date;
   if (updates.time) snakeCaseUpdates.time = updates.time;
+  if (updates.meetingWith) snakeCaseUpdates.meeting_with = updates.meetingWith;
 
   const { error } = await supabase.from("bookings").update(snakeCaseUpdates).eq("id", id);
   if (error) {
