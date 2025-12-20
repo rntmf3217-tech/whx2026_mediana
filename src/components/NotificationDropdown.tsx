@@ -118,12 +118,6 @@ export function NotificationDropdown({ onNotificationClick }: NotificationDropdo
                       !notification.isRead ? "bg-white/[0.02]" : "opacity-60"
                     )}
                   >
-                    <div className={cn(
-                        "px-2 py-1 rounded flex items-center justify-center shrink-0 border text-[10px] font-bold uppercase h-fit",
-                        getActionColor(notification.actionType)
-                    )}>
-                        {getActionIcon(notification.actionType)}
-                    </div>
                     <div className="flex-1 min-w-0">
                       <p className={cn("text-sm mb-1 leading-snug", !notification.isRead ? "text-white font-medium" : "text-slate-400")}>
                         {notification.message}

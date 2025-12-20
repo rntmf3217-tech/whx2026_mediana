@@ -575,7 +575,11 @@ export function Admin() {
                         <p className="text-xs text-slate-600 italic py-2">No bookings yet</p>
                       ) : (
                         dayBookings.map(b => (
-                          <div key={b.id} className="p-3 bg-black/40 rounded-lg border border-white/5 hover:border-cyan-500/30 transition-colors group relative">
+                          <div 
+                            key={b.id} 
+                            onClick={() => handleViewDetail(b)}
+                            className="p-3 bg-black/40 rounded-lg border border-white/5 hover:border-cyan-500/30 transition-colors group relative cursor-pointer"
+                          >
                             {b.statusFlag === 'new' && (
                                 <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" title="New Booking"></span>
                             )}
@@ -585,13 +589,10 @@ export function Admin() {
                             <div className="flex justify-between items-start mb-1">
                               <span className="text-cyan-400 font-mono text-xs font-bold">{b.time}</span>
                               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity pr-2">
-                                <button onClick={() => handleViewDetail(b)} className="text-slate-600 hover:text-cyan-400" title="View Details">
-                                    <Eye className="w-3 h-3" />
-                                </button>
-                                <button onClick={() => handleEdit(b)} className="text-slate-600 hover:text-blue-400">
+                                <button onClick={(e) => { e.stopPropagation(); handleEdit(b); }} className="text-slate-600 hover:text-blue-400">
                                   <Edit2 className="w-3 h-3" />
                                 </button>
-                                <button onClick={() => handleCancel(b.id)} className="text-slate-600 hover:text-red-400">
+                                <button onClick={(e) => { e.stopPropagation(); handleCancel(b.id); }} className="text-slate-600 hover:text-red-400">
                                   <Trash2 className="w-3 h-3" />
                                 </button>
                               </div>

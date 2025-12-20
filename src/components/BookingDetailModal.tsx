@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Calendar, Clock, MapPin, Building, User, Mail, MessageSquare, Tag } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, Building, User, Mail, MessageSquare, Tag, Copy, Check } from 'lucide-react';
 import { Booking } from '../lib/types';
 import { format, parseISO } from 'date-fns';
 
@@ -11,7 +11,36 @@ interface BookingDetailModalProps {
 }
 
 export function BookingDetailModal({ isOpen, booking, onClose }: BookingDetailModalProps) {
+  const [copied, setCopied] = useState(false);
+
   if (!isOpen || !booking) return null;
+
+  const handleCopy = () => {
+    const text = `
+Booking Details:
+ID: ${booking.id}
+Status: ${booking.customerType === 'new' ? 'New Customer' : booking.customerType === 'existing' ? 'Existing Customer' : 'Unknown'}
+Date: ${format(parseISO(booking.date), "MMMM d, yyyy")}
+Time: ${booking.time}
+
+Contact Information:
+Name: ${booking.name}
+Company: ${booking.companyName}
+Email: ${booking.email}
+Country: ${booking.country}
+
+Inquiry Details:
+Product: ${booking.productInterest}
+Inquiry Type: ${booking.inquiryType}
+Message: ${booking.message || 'N/A'}
+
+Created At: ${format(parseISO(booking.createdAt), "yyyy-MM-dd HH:mm:ss")}
+`.trim();
+
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return createPortal(
     <div 
@@ -25,12 +54,21 @@ export function BookingDetailModal({ isOpen, booking, onClose }: BookingDetailMo
         onClick={e => e.stopPropagation()}
       >
         <div className="p-6 border-b border-white/10 flex justify-between items-center bg-[#1a1a1a] z-10 shrink-0 rounded-t-2xl">
-          <h2 className="text-xl font-bold text-white flex items-center gap-3">
-            <span className="bg-cyan-500/10 text-cyan-400 p-2 rounded-lg">
-                <Calendar className="w-5 h-5" />
-            </span>
-            Booking Details
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-white flex items-center gap-3">
+              <span className="bg-cyan-500/10 text-cyan-400 p-2 rounded-lg">
+                  <Calendar className="w-5 h-5" />
+              </span>
+              Booking Details
+            </h2>
+            <button
+              onClick={handleCopy}
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              title="Copy details"
+            >
+              {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
           <button 
             onClick={onClose} 
             className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full"
