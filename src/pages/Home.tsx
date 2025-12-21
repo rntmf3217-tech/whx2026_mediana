@@ -264,24 +264,23 @@ export function Home() {
       {/* Main Content Split View */}
       <div ref={bookingRef} className="min-h-screen bg-[#121212] relative z-20">
         <div className="max-w-7xl mx-auto px-4 md:px-12 py-16 md:py-24">
-          <div className="grid lg:grid-cols-12 gap-12 lg:gap-16">
+          <div className="flex flex-col gap-12 max-w-3xl mx-auto w-full">
             
-            {/* Left Column: Landing Info (5 cols) */}
-            <div className="lg:col-span-5 space-y-10 md:space-y-12">
-              <div className="space-y-4 md:space-y-6">
+            {/* Header */}
+            <div className="space-y-4 md:space-y-6">
                 <h2 className="text-4xl md:text-5xl font-black text-white leading-tight">
                   We Look Forward to Meeting You
                 </h2>
                 <p className="text-slate-400 text-lg leading-relaxed">Our team is ready to discuss your needs and introduce Mediana’s medical solutions.</p>
-              </div>
+            </div>
 
-              {/* Inquiry Type Section */}
-              <div className="bg-white/5 rounded-3xl p-8 border border-white/10 backdrop-blur-sm">
+            {/* Inquiry Type Section */}
+            <div className="bg-white/5 rounded-3xl p-8 border border-white/10 backdrop-blur-sm">
                 <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                   <NotebookText className="w-6 h-6 text-[#28CBFF]" />
                   Select Inquiry Type
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {INQUIRY_TYPES.map((t) => (
                     <div
                       key={t.type}
@@ -304,39 +303,10 @@ export function Home() {
                     </div>
                   ))}
                 </div>
-              </div>
-
-              {/* Location Info */}
-              <div className="glass rounded-3xl border border-white/10 overflow-hidden bg-white/5">
-                <div className="p-6 flex items-start gap-4 border-b border-white/5">
-                  <MapPin className="w-6 h-6 text-[#28CBFF] mt-1" />
-                  <div>
-                    <h3 className="font-bold text-white text-lg mb-1">Dubai Exhibition Centre</h3>
-                    <div className="text-[#28CBFF] text-2xl font-bold">Booth No #N27.B58</div>
-                  </div>
-                </div>
-                <div className="relative w-full h-[400px] group">
-                  <iframe 
-                    src="https://www.expocad.com/host/fx/informa/arhe26/exfx.html?zoomto=N27.B58" 
-                    className="w-full h-full border-0 bg-white invert-[.9] grayscale-[.5] hover:invert-0 hover:grayscale-0 transition-all duration-500"
-                    title="Booth Location Map"
-                    loading="lazy"
-                  />
-                  <a 
-                    href="https://www.expocad.com/host/fx/informa/arhe26/exfx.html?zoomto=N27.B58" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="absolute bottom-4 right-4 bg-black/80 hover:bg-[#28CBFF] text-white hover:text-black px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all backdrop-blur-sm opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
-                  >
-                    <span>Open Full Map</span>
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                </div>
-              </div>
             </div>
 
-            {/* Right Column: Reservation Action (7 cols) */}
-            <div className="lg:col-span-7">
+            {/* Right Column: Reservation Action */}
+            <div className="">
               <div className="glass rounded-3xl p-6 md:p-10 border border-white/10 shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-[#28CBFF]/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                 
@@ -594,6 +564,34 @@ export function Home() {
                   </button>
                 </form>
               </div>
+            </div>
+
+            {/* Location Info */}
+            <div className="glass rounded-3xl border border-white/10 overflow-hidden bg-white/5">
+                <div className="p-6 flex items-start gap-4 border-b border-white/5">
+                  <MapPin className="w-6 h-6 text-[#28CBFF] mt-1" />
+                  <div>
+                    <h3 className="font-bold text-white text-lg mb-1">Dubai Exhibition Centre</h3>
+                    <div className="text-[#28CBFF] text-2xl font-bold">Booth No #N27.B58</div>
+                  </div>
+                </div>
+                <div className="relative w-full h-[400px] group">
+                  <iframe 
+                    src="https://www.expocad.com/host/fx/informa/arhe26/exfx.html?zoomto=N27.B58" 
+                    className="w-full h-full border-0 bg-white invert-[.9] grayscale-[.5] hover:invert-0 hover:grayscale-0 transition-all duration-500"
+                    title="Booth Location Map"
+                    loading="lazy"
+                  />
+                  <a 
+                    href="https://www.expocad.com/host/fx/informa/arhe26/exfx.html?zoomto=N27.B58" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="absolute bottom-4 right-4 bg-black/80 hover:bg-[#28CBFF] text-white hover:text-black px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all backdrop-blur-sm opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
+                  >
+                    <span>Open Full Map</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                </div>
             </div>
           </div>
         </div>
