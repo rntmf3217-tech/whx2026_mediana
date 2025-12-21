@@ -19,49 +19,52 @@ export function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-sm border border-slate-200">
-        <div className="flex flex-col items-center mb-6">
-          <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4">
-            <Lock className="w-6 h-6" />
+    <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
+      
+      <div className="max-w-md w-full glass p-8 rounded-2xl border border-white/10 shadow-2xl relative z-10">
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-16 h-16 bg-gradient-to-tr from-cyan-400 to-purple-500 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-cyan-500/30">
+            <Lock className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Admin Access</h1>
-          <p className="text-slate-500 text-center mt-2">
+          <h1 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 mb-2">Admin Access</h1>
+          <p className="text-slate-400 text-center">
             Please enter the administrator password to continue.
           </p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-slate-300 ml-1">
               Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 bg-white"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500/50 focus:bg-white/5 transition-all"
               placeholder="Enter password"
               autoFocus
             />
           </div>
           
           {error && (
-            <div className="text-red-500 text-sm bg-red-50 p-2 rounded">
+            <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 p-3 rounded-xl flex items-center justify-center">
               {error}
             </div>
           )}
 
           <button
             type="submit"
-            className="w-full bg-blue-900 text-white py-2 rounded-md font-medium hover:bg-blue-800 transition-colors"
+            className="w-full py-4 bg-gradient-to-r from-[#D8FF51] to-[#28CBFF] text-black font-bold rounded-xl shadow-lg shadow-[#28CBFF]/25 hover:scale-[1.02] hover:shadow-[#D8FF51]/40 transition-all duration-300"
           >
             Login
           </button>
         </form>
         
-        <div className="mt-6 text-center">
-          <a href="/" className="text-sm text-slate-500 hover:text-blue-600">
+        <div className="mt-8 text-center">
+          <a href="/" className="text-sm text-slate-500 hover:text-white transition-colors">
             ← Back to Home
           </a>
         </div>
