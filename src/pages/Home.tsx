@@ -9,7 +9,7 @@ import { addBooking, getBookingsByDate, createNotification } from "../lib/store"
 import { Booking } from "../lib/types";
 import { sendConfirmationEmail } from "../lib/email";
 import { cn } from "../lib/utils";
-import banner from "../assets/BG.png";
+import brandBg from "../assets/brand-identity-navy.svg";
 import whxLogo from "../assets/WHX_logo.png";
 
 export function Home() {
@@ -202,17 +202,17 @@ export function Home() {
     <Layout>
       {/* Hero Section */}
       <div className="relative w-full h-screen overflow-hidden flex flex-col justify-center">
-        {/* Background Image */}
-        <div 
+        {/* Background: MEDIANA brand visual identity */}
+        <div
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${banner})` }}
+          style={{ backgroundImage: `url(${brandBg})`, backgroundColor: "#113577" }}
         />
-        
-        {/* Gradient Overlay (Figma: linear-gradient(180deg, rgba(0, 0, 0, 0.42) 37.55%, rgba(17, 53, 119, 0.7) 100%)) */}
-        <div 
+
+        {/* Subtle overlay: darken the left for headline legibility, keep the right-side brand graphics visible */}
+        <div
           className="absolute inset-0 z-0"
-          style={{ 
-            background: "linear-gradient(180deg, rgba(0, 0, 0, 0.42) 37.55%, rgba(17, 53, 119, 0.7) 100%)" 
+          style={{
+            background: "linear-gradient(90deg, rgba(5,10,24,0.60) 0%, rgba(5,10,24,0.25) 50%, rgba(5,10,24,0) 100%)"
           }}
         />
         
