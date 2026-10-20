@@ -10,6 +10,7 @@ import { INQUIRY_TYPES, PRODUCT_INTERESTS } from "../lib/constants";
 import { useEdition } from "../lib/EditionContext";
 
 export function MyBooking() {
+  const { edition } = useEdition();
   const [email, setEmail] = useState("");
   const [bookings, setBookings] = useState<Booking[] | null>(null);
   const [searched, setSearched] = useState(false);
@@ -21,7 +22,7 @@ export function MyBooking() {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if(!email) return;
-    const data = await getBookingsByEmail(email.trim());
+    const data = await getBookingsByEmail(edition.id, email.trim());
     setBookings(data);
     setSearched(true);
   };
@@ -62,7 +63,7 @@ export function MyBooking() {
           // 3. Stibee Subscriber Deletion Removed (To prevent duplicate booking issues)
           console.log("[Cancel Flow] Step 3: Subscriber deletion skipped (design change).");
   
-          const data = await getBookingsByEmail(email); // Refresh
+          const data = await getBookingsByEmail(edition.id, email); // Refresh
           setBookings(data);
           setDeleteModal({ isOpen: false, bookingId: null });
           setToastMessage("Booking cancelled successfully.");
@@ -83,7 +84,7 @@ export function MyBooking() {
   };
 
   const handleUpdateSuccess = async () => {
-    const data = await getBookingsByEmail(email); // Refresh
+    const data = await getBookingsByEmail(edition.id, email); // Refresh
     setBookings(data);
     closeEditModal();
     setToastMessage("Booking updated successfully.");
@@ -290,7 +291,8 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
             await createNotification({
                 bookingId: booking.id,
                 message: `${booking.companyName} updated a booking.`,
-                actionType: 'update'
+                actionType: 'update',
+                editionId: edition.id
             });
 
             // Trigger Update Email (Non-blocking)

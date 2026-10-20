@@ -36,11 +36,11 @@ export function Home() {
 
   useEffect(() => {
     const fetchBookings = async () => {
-      const bookings = await getBookingsByDate(selectedDate);
+      const bookings = await getBookingsByDate(edition.id, selectedDate);
       setDayBookings(bookings);
     };
     fetchBookings();
-  }, [selectedDate, submitted]);
+  }, [selectedDate, submitted, edition.id]);
 
   const scrollToBooking = () => {
     bookingRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -80,7 +80,7 @@ export function Home() {
      // Validate if the selected slot is still available right before submission
      // Although we check in UI, race conditions can happen
      /*
-     const isAvailable = await isSlotAvailable(selectedDate, selectedTime);
+     const isAvailable = await isSlotAvailable(edition.id, selectedDate, selectedTime);
      if (!isAvailable) {
        alert("Sorry, this time slot has just been booked. Please select another time.");
        return;
@@ -116,6 +116,7 @@ export function Home() {
         customerType: tradingExperience === 'Yes' ? "existing" : tradingExperience === 'No' ? "new" : undefined,
         date: selectedDate,
         time: selectedTime,
+        editionId: edition.id,
       };
       console.log("Booking payload:", booking);
 
@@ -130,7 +131,8 @@ export function Home() {
         await createNotification({
             bookingId: (newBooking as any).id,
             message: `${booking.companyName} created a booking.`,
-            actionType: 'create'
+            actionType: 'create',
+            editionId: edition.id
         });
       }
       setSubmitted(true);
@@ -221,14 +223,16 @@ export function Home() {
             {/* Left Column: Text Content */}
             <div className="flex flex-col items-start gap-10 relative z-20 w-full">
               
-              {/* Logo (image 2570) */}
-              <div className="w-full md:w-auto flex justify-start">
-                <img
-                  src={edition.logoUrl || whxLogo}
-                  alt={edition.name}
-                  className="w-[120px] md:w-[200px] h-auto object-contain mb-[-10px] md:mb-[-10px]"
-                />
-              </div>
+              {/* Logo (image 2570) — use edition logo if set; fall back to the bundled WHX asset only for the WHX event */}
+              {(edition.logoUrl || edition.eventKey === "whx") && (
+                <div className="w-full md:w-auto flex justify-start">
+                  <img
+                    src={edition.logoUrl || whxLogo}
+                    alt={edition.name}
+                    className="w-[120px] md:w-[200px] h-auto object-contain mb-[-10px] md:mb-[-10px]"
+                  />
+                </div>
+              )}
 
               {/* Headlines (Frame 1618873519) */}
               <div className="flex flex-col items-start gap-4 md:gap-6 w-full">

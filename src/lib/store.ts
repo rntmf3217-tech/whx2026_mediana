@@ -69,11 +69,17 @@ export async function getCurrentEdition(eventKey: string): Promise<Edition | nul
   return mapEdition(data[0]);
 }
 
-export async function getBookings(): Promise<Booking[]> {
-  const { data, error } = await supabase
+export async function getBookings(editionId?: string): Promise<Booking[]> {
+  let query = supabase
     .from("bookings")
     .select("*")
     .order("created_at", { ascending: false });
+
+  if (editionId) {
+    query = query.eq("edition_id", editionId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching bookings:", error);
@@ -95,6 +101,7 @@ export async function getBookings(): Promise<Booking[]> {
     createdAt: b.created_at,
     statusFlag: b.status_flag || 'read', // Default to read if null/undefined to avoid errors
     meetingWith: b.meeting_with || '담당자 미선택',
+    editionId: b.edition_id,
   }));
 }
 
@@ -109,12 +116,18 @@ export async function markBookingAsRead(id: string): Promise<void> {
   }
 }
 
-export async function getNotifications(): Promise<Notification[]> {
-  const { data, error } = await supabase
+export async function getNotifications(editionId?: string): Promise<Notification[]> {
+  let query = supabase
     .from("notifications")
     .select("*")
     .order("created_at", { ascending: false })
     .limit(20);
+
+  if (editionId) {
+    query = query.eq("edition_id", editionId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching notifications:", error);
@@ -146,6 +159,7 @@ export async function createNotification(notification: {
   bookingId: string | null;
   message: string;
   actionType: 'create' | 'update' | 'cancel';
+  editionId?: string;
 }): Promise<void> {
   const { error } = await supabase
     .from("notifications")
@@ -153,7 +167,9 @@ export async function createNotification(notification: {
       booking_id: notification.bookingId,
       message: notification.message,
       action_type: notification.actionType,
-      is_read: false
+      is_read: false,
+      // Only stamp edition_id when provided; otherwise let the DB default apply
+      ...(notification.editionId !== undefined ? { edition_id: notification.editionId } : {}),
     }]);
 
   if (error) {
@@ -175,6 +191,8 @@ export async function addBooking(booking: Omit<Booking, "id" | "createdAt" | "st
     date: booking.date,
     time: booking.time,
     meeting_with: '담당자 미선택', // Default value
+    // Only stamp edition_id when provided; otherwise let the DB default apply
+    ...(booking.editionId !== undefined ? { edition_id: booking.editionId } : {}),
   };
   console.log("DB Payload:", dbBooking);
 
@@ -217,6 +235,7 @@ export async function addBooking(booking: Omit<Booking, "id" | "createdAt" | "st
       time: b.time,
       createdAt: b.created_at,
       meetingWith: b.meeting_with || '담당자 미선택',
+      editionId: b.edition_id,
     };
   } catch (e) {
     console.error("Exception in addBooking:", e);
@@ -253,10 +272,11 @@ export async function updateBooking(id: string, updates: Partial<Booking>): Prom
   }
 }
 
-export async function isSlotAvailable(date: string, time: string): Promise<boolean> {
+export async function isSlotAvailable(editionId: string, date: string, time: string): Promise<boolean> {
   const { data, error } = await supabase
     .from("bookings")
     .select("id")
+    .eq("edition_id", editionId)
     .eq("date", date)
     .eq("time", time);
 
@@ -268,11 +288,17 @@ export async function isSlotAvailable(date: string, time: string): Promise<boole
   return data.length === 0;
 }
 
-export async function getBookingsByDate(date: string): Promise<Booking[]> {
-  const { data, error } = await supabase
+export async function getBookingsByDate(editionId: string | undefined, date: string): Promise<Booking[]> {
+  let query = supabase
     .from("bookings")
     .select("*")
     .eq("date", date);
+
+  if (editionId) {
+    query = query.eq("edition_id", editionId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching bookings by date:", error);
@@ -293,16 +319,23 @@ export async function getBookingsByDate(date: string): Promise<Booking[]> {
     time: b.time,
     createdAt: b.created_at,
     meetingWith: b.meeting_with || '담당자 미선택',
+    editionId: b.edition_id,
   }));
 }
 
-export async function getBookingsByEmail(email: string): Promise<Booking[]> {
+export async function getBookingsByEmail(editionId: string | undefined, email: string): Promise<Booking[]> {
   const sanitized = email.trim();
-  const { data, error } = await supabase
+  let query = supabase
     .from("bookings")
     .select("*")
     .ilike("email", sanitized) // Use case-insensitive match to catch different capitalizations
     .order("created_at", { ascending: false });
+
+  if (editionId) {
+    query = query.eq("edition_id", editionId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error("Error fetching bookings by email:", error);
@@ -323,5 +356,6 @@ export async function getBookingsByEmail(email: string): Promise<Booking[]> {
     time: b.time,
     createdAt: b.created_at,
     meetingWith: b.meeting_with || '담당자 미선택',
+    editionId: b.edition_id,
   }));
 }
