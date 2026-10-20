@@ -105,9 +105,9 @@ export function MyBooking() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email address"
-            className="flex-1 px-6 py-4 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-cyan-400 transition-colors"
+            className="flex-1 px-6 py-4 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-brand-cyan transition-colors"
           />
-          <button type="submit" className="px-8 py-4 bg-white text-black rounded-xl font-bold hover:bg-slate-200 transition-colors flex items-center gap-2">
+          <button type="submit" className="px-8 py-4 bg-white text-brand-navy rounded-xl font-bold hover:bg-slate-200 transition-colors flex items-center gap-2">
             <Search className="w-5 h-5" /> Check
           </button>
         </form>
@@ -129,13 +129,13 @@ export function MyBooking() {
                     <div className="flex gap-2">
                         <button
                         onClick={() => handleEdit(booking)}
-                        className="text-cyan-400 text-sm hover:text-cyan-300 font-medium flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 transition-colors"
+                        className="text-brand-cyan text-sm hover:text-brand-cyan font-medium flex items-center gap-2 px-3 py-1 rounded-full bg-brand-cyan/10 hover:bg-brand-cyan/20 transition-colors"
                         >
                         <Pencil className="w-4 h-4" /> Edit
                         </button>
                         <button
                         onClick={() => handleCancel(booking.id)}
-                        className="text-red-400 text-sm hover:text-red-300 font-medium flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 hover:bg-red-500/20 transition-colors"
+                        className="text-brand-red text-sm hover:text-brand-red font-medium flex items-center gap-2 px-3 py-1 rounded-full bg-brand-red/10 hover:bg-brand-red/20 transition-colors"
                         >
                         <XCircle className="w-4 h-4" /> Cancel
                         </button>
@@ -144,15 +144,15 @@ export function MyBooking() {
 
                   <div className="grid sm:grid-cols-2 gap-6 text-sm">
                     <div className="flex items-center gap-3 text-slate-300">
-                      <Calendar className="w-5 h-5 text-cyan-400" />
+                      <Calendar className="w-5 h-5 text-brand-cyan" />
                       {format(parseISO(booking.date), "EEEE, MMMM d, yyyy")}
                     </div>
                     <div className="flex items-center gap-3 text-slate-300">
-                      <Clock className="w-5 h-5 text-purple-400" />
+                      <Clock className="w-5 h-5 text-brand-blue" />
                       {booking.time} (30 mins)
                     </div>
                     <div className="flex items-center gap-3 text-slate-300 col-span-full">
-                      <Package className="w-5 h-5 text-pink-400" />
+                      <Package className="w-5 h-5 text-brand-cyan" />
                       {booking.productInterest}
                     </div>
                   </div>
@@ -176,10 +176,10 @@ export function MyBooking() {
           role="dialog"
           aria-modal="true"
         >
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-zoom-in">
+          <div className="bg-[#0F1A33] border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl relative animate-zoom-in">
             <div className="flex flex-col items-center text-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-red-500" />
+              <div className="w-12 h-12 rounded-full bg-brand-red/10 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-brand-red" />
               </div>
               
               <div className="space-y-2">
@@ -200,7 +200,7 @@ export function MyBooking() {
                   onClick={confirmDelete}
                   disabled={isDeleting}
                   className={cn(
-                    "flex-1 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl transition-all font-bold shadow-lg shadow-red-500/20",
+                    "flex-1 px-4 py-2.5 bg-brand-red hover:bg-brand-red text-white rounded-xl transition-all font-bold shadow-lg shadow-brand-red/20",
                     isDeleting && "opacity-50 cursor-not-allowed"
                   )}
                 >
@@ -224,9 +224,9 @@ export function MyBooking() {
 
       {showSuccessToast && createPortal(
         <div className="fixed top-6 right-6 z-[10000] animate-slide-in-right">
-          <div className="bg-[#1a1a1a] border border-green-500/20 rounded-xl p-4 shadow-2xl flex items-center gap-3 pr-6">
-            <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-              <Check className="w-4 h-4 text-green-500" />
+          <div className="bg-[#0F1A33] border border-brand-green/20 rounded-xl p-4 shadow-2xl flex items-center gap-3 pr-6">
+            <div className="w-8 h-8 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0">
+              <Check className="w-4 h-4 text-brand-green" />
             </div>
             <div>
               <h4 className="text-white font-bold text-sm">Success</h4>
@@ -318,8 +318,8 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
 
     return createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl relative animate-zoom-in" onClick={e => e.stopPropagation()}>
-                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-[#1a1a1a] rounded-t-2xl z-10 shrink-0">
+            <div className="bg-[#0F1A33] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl relative animate-zoom-in" onClick={e => e.stopPropagation()}>
+                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-[#0F1A33] rounded-t-2xl z-10 shrink-0">
                     <h2 className="text-xl font-bold text-white">Edit Booking</h2>
                     <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-white/10 rounded-full">
                         <X className="w-6 h-6" />
@@ -327,7 +327,7 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                 </div>
                 
                 <form onSubmit={handleSubmit} className="p-6 overflow-y-auto custom-scrollbar space-y-6">
-                     <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl text-yellow-200 text-sm">
+                     <div className="bg-brand-yellow/10 border border-brand-yellow/20 p-4 rounded-xl text-brand-yellow text-sm">
                         Note: Name, Company, and Country cannot be changed. To change these, please cancel and re-book.
                      </div>
 
@@ -358,7 +358,7 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                             <select 
                                 value={selectedDate}
                                 onChange={(e) => { setSelectedDate(e.target.value); setSelectedTime(""); }}
-                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400"
+                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-cyan"
                             >
                                 {exhibitionDates.map(d => (
                                     <option key={d} value={d}>{d}</option>
@@ -371,7 +371,7 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                                 value={selectedTime}
                                 onChange={(e) => setSelectedTime(e.target.value)}
                                 required
-                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400"
+                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-cyan"
                             >
                                 <option value="" disabled>Select Time</option>
                                 {timeSlots.map(t => (
@@ -387,7 +387,7 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                         <select 
                             name="inquiryType"
                             defaultValue={booking.inquiryType}
-                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400"
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-cyan"
                         >
                             {INQUIRY_TYPES.map(t => (
                                 <option key={t.type} value={t.type}>{t.type}</option>
@@ -401,7 +401,7 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                         <select 
                             name="productInterest"
                             defaultValue={booking.productInterest}
-                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400"
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-cyan"
                         >
                             {PRODUCT_INTERESTS.map(p => (
                                 <option key={p} value={p}>{p}</option>
@@ -415,7 +415,7 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                         <select 
                             name="customerType"
                             defaultValue={booking.customerType || "new"}
-                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400"
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-cyan"
                         >
                             <option value="new">New Customer</option>
                             <option value="existing">Existing Customer</option>
@@ -429,7 +429,7 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                             name="message"
                             defaultValue={booking.message}
                             rows={3}
-                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400"
+                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-brand-cyan"
                         />
                      </div>
 
@@ -444,7 +444,7 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                         <button 
                             type="submit"
                             disabled={isSubmitting || !selectedTime}
-                            className="px-8 py-3 bg-cyan-500 hover:bg-cyan-400 text-black font-bold rounded-xl shadow-lg shadow-cyan-500/20 transition-all disabled:opacity-50"
+                            className="px-8 py-3 bg-brand-navy hover:bg-brand-blue text-white font-bold rounded-xl shadow-lg shadow-brand-navy/40 transition-all disabled:opacity-50"
                         >
                             {isSubmitting ? "Saving..." : "Save Changes"}
                         </button>

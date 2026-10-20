@@ -7,15 +7,15 @@
     scroll-behavior: smooth;
   }
   body {
-  @apply antialiased text-white bg-[#121212];
+  @apply antialiased text-white bg-[#0A1124];
   font-feature-settings: "cv11", "ss01";
-  font-family: 'Pretendard', sans-serif;
+  font-family: 'Manrope', 'Pretendard', sans-serif;
 }
 }
 
 @layer utilities {
   .glass {
-    @apply bg-white/5 backdrop-blur-lg border border-white/10;
+    @apply bg-white/5 backdrop-blur-lg border border-brand-cyan/15;
   }
   
   .glass-hover {
@@ -23,11 +23,11 @@
   }
   
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-blue to-brand-cyan;
   }
 
   .text-gradient-secondary {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-orange-400;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-blue to-brand-green;
   }
   
   .scrollbar-hide::-webkit-scrollbar {
@@ -40,7 +40,7 @@
 
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+    scrollbar-color: rgba(150, 150, 150, 0.4) rgba(255, 255, 255, 0.05);
   }
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
@@ -50,7 +50,7 @@
     @apply bg-white/5 rounded-full;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-white/20 rounded-full hover:bg-white/30 transition-colors;
+    @apply bg-brand-gray/40 rounded-full hover:bg-brand-gray/60 transition-colors;
   }
 }
 
@@ -159,14 +159,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #0A0A0A;
+  background: #070D1E;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: #3C3C3C;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #969696;
 }

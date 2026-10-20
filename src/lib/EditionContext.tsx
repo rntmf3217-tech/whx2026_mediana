@@ -80,7 +80,7 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#050A18] text-white">
         <div className="text-slate-400 text-lg animate-pulse">Loading…</div>
       </div>
     );
@@ -88,12 +88,12 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
 
   if (notFound || !edition) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505] text-white p-6 text-center">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#050A18] text-white p-6 text-center">
         <h1 className="text-4xl font-black mb-4">Event not found</h1>
         <p className="text-slate-400 mb-8">The exhibition you are looking for does not exist.</p>
         <Link
           to="/"
-          className="px-6 py-3 bg-white text-black font-bold rounded-full hover:bg-slate-200 transition-colors"
+          className="px-6 py-3 bg-white text-brand-navy font-bold rounded-full hover:bg-slate-200 transition-colors"
         >
           Back to Home
         </Link>

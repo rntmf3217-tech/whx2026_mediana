@@ -67,9 +67,9 @@ export function NotificationDropdown({ onNotificationClick, editionId }: Notific
 
   const getActionColor = (type: string) => {
     switch (type) {
-      case 'create': return 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20';
-      case 'update': return 'text-green-400 bg-green-500/10 border-green-500/20';
-      case 'cancel': return 'text-red-400 bg-red-500/10 border-red-500/20';
+      case 'create': return 'text-brand-cyan bg-brand-cyan/10 border-brand-cyan/20';
+      case 'update': return 'text-brand-green bg-brand-green/10 border-brand-green/20';
+      case 'cancel': return 'text-brand-red bg-brand-red/10 border-brand-red/20';
       default: return 'text-slate-400 bg-slate-500/10 border-slate-500/20';
     }
   };
@@ -92,15 +92,15 @@ export function NotificationDropdown({ onNotificationClick, editionId }: Notific
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]"></span>
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-red rounded-full animate-pulse shadow-[0_0_8px_rgba(255,91,91,0.6)]"></span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 md:w-96 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl z-[9999] overflow-hidden animate-fade-in-down origin-top-right">
+        <div className="absolute right-0 mt-2 w-80 md:w-96 bg-[#0F1A33] border border-white/10 rounded-xl shadow-2xl z-[9999] overflow-hidden animate-fade-in-down origin-top-right">
           <div className="p-4 border-b border-white/10 bg-white/5 flex justify-between items-center">
             <h3 className="font-bold text-white text-sm">Notifications</h3>
-            {unreadCount > 0 && <span className="text-xs text-cyan-400 font-medium">{unreadCount} unread</span>}
+            {unreadCount > 0 && <span className="text-xs text-brand-cyan font-medium">{unreadCount} unread</span>}
           </div>
           
           <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
@@ -128,7 +128,7 @@ export function NotificationDropdown({ onNotificationClick, editionId }: Notific
                       </span>
                     </div>
                     {!notification.isRead && (
-                        <div className="w-2 h-2 rounded-full bg-cyan-500 mt-2 shrink-0"></div>
+                        <div className="w-2 h-2 rounded-full bg-brand-cyan mt-2 shrink-0"></div>
                     )}
                   </div>
                 ))}

@@ -27,7 +27,7 @@ function RootRedirect() {
 
   if (!resolved) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#050A18] text-white">
         <div className="text-slate-400 text-lg animate-pulse">Loading…</div>
       </div>
     );
@@ -35,7 +35,7 @@ function RootRedirect() {
 
   if (!edition) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white p-6 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-[#050A18] text-white p-6 text-center">
         <p className="text-slate-400 text-lg">No exhibition is available right now.</p>
       </div>
     );
@@ -70,7 +70,7 @@ function EventRedirect() {
   }, [event, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white">
+    <div className="min-h-screen flex items-center justify-center bg-[#050A18] text-white">
       <div className="text-slate-400 text-lg animate-pulse">Loading…</div>
     </div>
   );
@@ -78,11 +78,11 @@ function EventRedirect() {
 
 function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505] text-white p-6 text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#050A18] text-white p-6 text-center">
       <h1 className="text-4xl font-black mb-4">Page not found</h1>
       <Link
         to="/"
-        className="px-6 py-3 bg-white text-black font-bold rounded-full hover:bg-slate-200 transition-colors"
+        className="px-6 py-3 bg-white text-brand-navy font-bold rounded-full hover:bg-slate-200 transition-colors"
       >
         Back to Home
       </Link>

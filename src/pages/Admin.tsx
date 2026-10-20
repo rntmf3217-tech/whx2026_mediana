@@ -457,7 +457,7 @@ export function Admin() {
                 <select
                   value={selectedEventKey}
                   onChange={(e) => handleExhibitionChange(e.target.value)}
-                  className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 min-w-[10rem]"
+                  className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-cyan min-w-[10rem]"
                 >
                   {eventKeys.length === 0 && <option value="">—</option>}
                   {eventKeys.map(ek => (
@@ -470,7 +470,7 @@ export function Admin() {
                 <select
                   value={selectedYear ?? ""}
                   onChange={(e) => setSelectedYear(e.target.value ? Number(e.target.value) : null)}
-                  className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 min-w-[7rem]"
+                  className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-cyan min-w-[7rem]"
                 >
                   {yearOptions.length === 0 && <option value="">—</option>}
                   {yearOptions.map(y => (
@@ -485,7 +485,7 @@ export function Admin() {
               <button 
                 onClick={handleBulkDelete}
                 disabled={isSubmitting}
-                className="flex items-center gap-2 px-6 py-3 bg-red-500/10 text-red-400 border border-red-500/20 rounded-xl hover:bg-red-500/20 hover:shadow-lg hover:shadow-red-500/10 transition-all text-sm font-bold animate-fade-in"
+                className="flex items-center gap-2 px-6 py-3 bg-brand-red/10 text-brand-red border border-brand-red/20 rounded-xl hover:bg-brand-red/20 hover:shadow-lg hover:shadow-brand-red/10 transition-all text-sm font-bold animate-fade-in"
               >
                 <Trash2 className="w-4 h-4" /> Delete ({selectedIds.size})
               </button>
@@ -506,16 +506,16 @@ export function Admin() {
                   message: ""
                 });
               }}
-              className="flex items-center gap-2 px-6 py-3 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-xl hover:bg-cyan-500/20 hover:shadow-lg hover:shadow-cyan-500/10 transition-all text-sm font-bold"
+              className="flex items-center gap-2 px-6 py-3 bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/20 rounded-xl hover:bg-brand-cyan/20 hover:shadow-lg hover:shadow-brand-cyan/10 transition-all text-sm font-bold"
             >
               <Plus className="w-4 h-4" /> Add Booking
             </button>
-            <button onClick={handleExport} className="flex items-center gap-2 px-6 py-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl hover:bg-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/10 transition-all text-sm font-bold">
+            <button onClick={handleExport} className="flex items-center gap-2 px-6 py-3 bg-brand-green/10 text-brand-green border border-brand-green/20 rounded-xl hover:bg-brand-green/20 hover:shadow-lg hover:shadow-brand-green/10 transition-all text-sm font-bold">
               <Download className="w-4 h-4" /> {selectedIds.size > 0 ? `Export (${selectedIds.size})` : "Export Excel"}
             </button>
             <button 
               onClick={handleLogout} 
-              className="flex items-center gap-2 px-6 py-3 bg-white/10 text-slate-300 rounded-xl hover:bg-red-500/20 hover:text-red-400 transition-all text-sm font-bold"
+              className="flex items-center gap-2 px-6 py-3 bg-white/10 text-slate-300 rounded-xl hover:bg-brand-red/20 hover:text-brand-red transition-all text-sm font-bold"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />
@@ -545,7 +545,7 @@ export function Admin() {
               <select
                 value={filterCustomerType}
                 onChange={(e) => setFilterCustomerType(e.target.value)}
-                className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 w-full md:w-40"
+                className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-cyan w-full md:w-40"
               >
                 <option value="">All Customers</option>
                 <option value="new">New</option>
@@ -555,7 +555,7 @@ export function Admin() {
               <select
                 value={filterProduct}
                 onChange={(e) => setFilterProduct(e.target.value)}
-                className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 w-full md:w-48"
+                className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-cyan w-full md:w-48"
               >
                 <option value="">All Products</option>
                 {PRODUCT_INTERESTS.map(p => (
@@ -566,7 +566,7 @@ export function Admin() {
               <select
                 value={filterMeetingHost}
                 onChange={(e) => setFilterMeetingHost(e.target.value)}
-                className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 w-full md:w-40"
+                className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-cyan w-full md:w-40"
               >
                 <option value="">모든 담당자</option>
                 {(selectedEdition?.hosts?.length ? ["담당자 미선택", ...selectedEdition.hosts] : MEETING_HOSTS).map(host => (
@@ -581,7 +581,7 @@ export function Admin() {
                   placeholder="Search bookings..."
                   value={filter}
                   onChange={(e) => setFilter(e.target.value)}
-                  className="pl-10 pr-4 py-2.5 bg-black/40 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400 w-full transition-colors placeholder:text-slate-600"
+                  className="pl-10 pr-4 py-2.5 bg-black/40 border border-white/10 rounded-lg text-sm text-white focus:outline-none focus:border-brand-cyan w-full transition-colors placeholder:text-slate-600"
                 />
               </div>
             </div>
@@ -597,7 +597,7 @@ export function Admin() {
                         type="checkbox" 
                         onChange={handleSelectAll}
                         checked={filteredBookings.length > 0 && selectedIds.size === filteredBookings.length}
-                        className="rounded border-white/20 bg-black/40 text-cyan-500 focus:ring-offset-black focus:ring-cyan-500/20 w-4 h-4 cursor-pointer"
+                        className="rounded border-white/20 bg-black/40 text-brand-cyan focus:ring-offset-black focus:ring-brand-cyan/20 w-4 h-4 cursor-pointer"
                       />
                     </th>
                     <th className="px-6 py-4">Date/Time</th>
@@ -621,7 +621,7 @@ export function Admin() {
                       <tr 
                         key={booking.id} 
                         onClick={() => handleViewDetail(booking)}
-                        className={cn("group hover:bg-white/5 transition-colors cursor-pointer", selectedIds.has(booking.id) && "bg-cyan-500/5")}
+                        className={cn("group hover:bg-white/5 transition-colors cursor-pointer", selectedIds.has(booking.id) && "bg-brand-cyan/5")}
                       >
                         <td className="px-6 py-4">
                           <input 
@@ -629,20 +629,20 @@ export function Admin() {
                             checked={selectedIds.has(booking.id)}
                             onClick={(e) => e.stopPropagation()}
                             onChange={() => handleSelectOne(booking.id)}
-                            className="rounded border-white/20 bg-black/40 text-cyan-500 focus:ring-offset-black focus:ring-cyan-500/20 w-4 h-4 cursor-pointer"
+                            className="rounded border-white/20 bg-black/40 text-brand-cyan focus:ring-offset-black focus:ring-brand-cyan/20 w-4 h-4 cursor-pointer"
                           />
                         </td>
                         <td className="px-6 py-4 relative">
                           <div className="font-bold text-white inline-block">
                             {format(parseISO(booking.date), "MMM d")}
                           </div>
-                          <div className="text-cyan-400 text-sm font-mono">{booking.time}</div>
+                          <div className="text-brand-cyan text-sm font-mono">{booking.time}</div>
                         </td>
                         <td className="px-6 py-4 text-slate-300">
                           <div className="flex items-center whitespace-nowrap">
                             {booking.companyName}
                             {getCustomerType(booking) === "new" && (
-                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                              <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/20">
                                 NEW
                               </span>
                             )}
@@ -657,7 +657,7 @@ export function Admin() {
                           <span className={cn(
                             "text-xs font-medium",
                             !booking.meetingWith || booking.meetingWith === '담당자 미선택' 
-                              ? "text-red-400" 
+                              ? "text-brand-red" 
                               : "text-slate-300"
                           )}>
                             {booking.meetingWith || '담당자 미선택'}
@@ -679,10 +679,10 @@ export function Admin() {
                           <div className="inline-block relative">
                             {booking.createdAt ? format(parseISO(booking.createdAt), "MMM d, HH:mm") : "-"}
                             {booking.statusFlag === 'new' && (
-                                <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" title="New Booking"></span>
+                                <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-brand-red animate-pulse shadow-[0_0_8px_rgba(255,91,91,0.6)]" title="New Booking"></span>
                             )}
                             {booking.statusFlag === 'updated' && (
-                                <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" title="Updated Booking"></span>
+                                <span className="absolute -top-1 -right-2 w-2 h-2 rounded-full bg-brand-green animate-pulse shadow-[0_0_8px_rgba(168,255,49,0.6)]" title="Updated Booking"></span>
                             )}
                           </div>
                         </td>
@@ -710,21 +710,21 @@ export function Admin() {
                           <div 
                             key={b.id} 
                             onClick={() => handleViewDetail(b)}
-                            className="p-3 bg-black/40 rounded-lg border border-white/5 hover:border-cyan-500/30 transition-colors group relative cursor-pointer"
+                            className="p-3 bg-black/40 rounded-lg border border-white/5 hover:border-brand-cyan/30 transition-colors group relative cursor-pointer"
                           >
                             {b.statusFlag === 'new' && (
-                                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.6)]" title="New Booking"></span>
+                                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-brand-red animate-pulse shadow-[0_0_8px_rgba(255,91,91,0.6)]" title="New Booking"></span>
                             )}
                             {b.statusFlag === 'updated' && (
-                                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" title="Updated Booking"></span>
+                                <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-brand-green animate-pulse shadow-[0_0_8px_rgba(168,255,49,0.6)]" title="Updated Booking"></span>
                             )}
                             <div className="flex justify-between items-start mb-1">
-                              <span className="text-cyan-400 font-mono text-xs font-bold">{b.time}</span>
+                              <span className="text-brand-cyan font-mono text-xs font-bold">{b.time}</span>
                             </div>
                             <div className="font-medium text-white text-sm truncate flex items-center gap-2">
                               <span className="truncate">{b.companyName}</span>
                               {getCustomerType(b) === "new" && (
-                                <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                                <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/20">
                                   NEW
                                 </span>
                               )}
@@ -736,7 +736,7 @@ export function Admin() {
                               <span className={cn(
                                     "shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border",
                                     !b.meetingWith || b.meetingWith === '담당자 미선택'
-                                    ? "bg-red-500/10 text-red-400 border-red-500/20"
+                                    ? "bg-brand-red/10 text-brand-red border-brand-red/20"
                                     : "bg-white/5 text-slate-400 border-white/10"
                                 )}>
                                     {b.meetingWith || '담당자 미선택'}
@@ -773,8 +773,8 @@ export function Admin() {
           aria-modal="true"
           aria-labelledby="modal-title"
         >
-          <div className="bg-[#1a1a1a] border border-white/10 rounded-2xl w-full max-w-2xl flex flex-col max-h-[85dvh] shadow-2xl relative z-[10000]">
-            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-[#1a1a1a] z-10 shrink-0 rounded-t-2xl">
+          <div className="bg-[#0F1A33] border border-white/10 rounded-2xl w-full max-w-2xl flex flex-col max-h-[85dvh] shadow-2xl relative z-[10000]">
+            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-[#0F1A33] z-10 shrink-0 rounded-t-2xl">
               <h2 id="modal-title" className="text-xl font-bold text-white">Add New Booking</h2>
               <button 
                 onClick={() => setShowAddModal(false)} 
@@ -785,7 +785,7 @@ export function Admin() {
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain p-6 bg-[#1a1a1a]">
+            <div className="flex-1 overflow-y-auto custom-scrollbar overscroll-contain p-6 bg-[#0F1A33]">
               <form id="add-booking-form" onSubmit={handleAddSubmit} className="space-y-6">
                 <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
@@ -793,7 +793,7 @@ export function Admin() {
                   <select
                     value={newBooking.customerType || ""}
                     onChange={(e) => setNewBooking({...newBooking, customerType: e.target.value as any || undefined})}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-brand-cyan focus:outline-none"
                   >
                     <option value="">Select Type</option>
                     <option value="new">New Customer</option>
@@ -806,7 +806,7 @@ export function Admin() {
                   <select
                     value={newBooking.date}
                     onChange={(e) => setNewBooking({...newBooking, date: e.target.value, time: ""})}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-brand-cyan focus:outline-none"
                   >
                     {editionDates.map(date => (
                       <option key={date} value={date}>{format(parseISO(date), "MMM d, yyyy")}</option>
@@ -819,7 +819,7 @@ export function Admin() {
                   <select
                     value={newBooking.time}
                     onChange={(e) => setNewBooking({...newBooking, time: e.target.value})}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-brand-cyan focus:outline-none"
                     required
                   >
                     <option value="">Select Time</option>
@@ -836,7 +836,7 @@ export function Admin() {
                   <select
                     value={newBooking.inquiryType}
                     onChange={(e) => setNewBooking({...newBooking, inquiryType: e.target.value})}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-brand-cyan focus:outline-none"
                     required
                   >
                     <option value="">Select Inquiry Type</option>
@@ -851,7 +851,7 @@ export function Admin() {
                   <select
                     value={newBooking.productInterest}
                     onChange={(e) => setNewBooking({...newBooking, productInterest: e.target.value})}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-brand-cyan focus:outline-none"
                     required
                   >
                     <option value="">Select Product</option>
@@ -867,7 +867,7 @@ export function Admin() {
                     type="text"
                     value={newBooking.name}
                     onChange={(e) => setNewBooking({...newBooking, name: e.target.value})}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-brand-cyan focus:outline-none"
                     placeholder="Enter name"
                     required
                   />
@@ -879,7 +879,7 @@ export function Admin() {
                     type="text"
                     value={newBooking.companyName}
                     onChange={(e) => setNewBooking({...newBooking, companyName: e.target.value})}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-brand-cyan focus:outline-none"
                     placeholder="Enter company name"
                     required
                   />
@@ -890,7 +890,7 @@ export function Admin() {
                   <select
                     value={newBooking.country}
                     onChange={(e) => setNewBooking({...newBooking, country: e.target.value})}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-brand-cyan focus:outline-none"
                     required
                   >
                     <option value="">Select Country</option>
@@ -906,7 +906,7 @@ export function Admin() {
                     type="email"
                     value={newBooking.email}
                     onChange={(e) => setNewBooking({...newBooking, email: e.target.value})}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
+                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-brand-cyan focus:outline-none"
                     placeholder="Enter email"
                     required
                   />
@@ -918,14 +918,14 @@ export function Admin() {
                   <textarea
                     value={newBooking.message}
                     onChange={(e) => setNewBooking({...newBooking, message: e.target.value})}
-                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none min-h-[100px]"
+                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-brand-cyan focus:outline-none min-h-[100px]"
                     placeholder="Enter any additional details..."
                   />
                 </div>
               </form>
             </div>
 
-            <div className="flex justify-end gap-4 p-6 border-t border-white/10 shrink-0 bg-[#1a1a1a] rounded-b-2xl z-10">
+            <div className="flex justify-end gap-4 p-6 border-t border-white/10 shrink-0 bg-[#0F1A33] rounded-b-2xl z-10">
               <button
                 type="button"
                 onClick={() => setShowAddModal(false)}
@@ -938,7 +938,7 @@ export function Admin() {
                 type="submit"
                 form="add-booking-form"
                 disabled={isSubmitting}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white rounded-xl hover:shadow-lg hover:shadow-cyan-500/20 transition-all font-bold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-gradient-to-r from-brand-navy to-brand-blue text-white rounded-xl hover:shadow-lg hover:shadow-brand-blue/30 transition-all font-bold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
                   <>Saving...</>
@@ -956,9 +956,9 @@ export function Admin() {
 
       {showSuccessToast && createPortal(
         <div className="fixed top-6 right-6 z-[10000] animate-slide-in-right">
-          <div className="bg-[#1a1a1a] border border-green-500/20 rounded-xl p-4 shadow-2xl flex items-center gap-3 pr-6">
-            <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
-              <Check className="w-4 h-4 text-green-500" />
+          <div className="bg-[#0F1A33] border border-brand-green/20 rounded-xl p-4 shadow-2xl flex items-center gap-3 pr-6">
+            <div className="w-8 h-8 rounded-full bg-brand-green/10 flex items-center justify-center shrink-0">
+              <Check className="w-4 h-4 text-brand-green" />
             </div>
             <div>
               <h4 className="text-white font-bold text-sm">Success</h4>
