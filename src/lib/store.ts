@@ -1,5 +1,73 @@
 import { supabase } from "./supabase";
-import { Booking, Notification } from "./types";
+import { Booking, Notification, Edition } from "./types";
+
+interface EditionRow {
+  id: string;
+  event_key: string;
+  year: number;
+  name: string;
+  start_date: string;
+  end_date: string;
+  operating_hours: Record<string, { start: string; end: string }> | null;
+  booth: string | null;
+  location: string | null;
+  map_embed_url: string | null;
+  logo_url: string | null;
+  hosts: string[] | null;
+  registration_open: boolean;
+  is_current: boolean;
+}
+
+function mapEdition(e: EditionRow): Edition {
+  return {
+    id: e.id,
+    eventKey: e.event_key,
+    year: e.year,
+    name: e.name,
+    startDate: e.start_date,
+    endDate: e.end_date,
+    operatingHours: e.operating_hours || {},
+    booth: e.booth ?? undefined,
+    location: e.location ?? undefined,
+    mapEmbedUrl: e.map_embed_url ?? undefined,
+    logoUrl: e.logo_url ?? undefined,
+    hosts: e.hosts || [],
+    registrationOpen: e.registration_open,
+    isCurrent: e.is_current,
+  };
+}
+
+export async function getEdition(eventKey: string, year: number): Promise<Edition | null> {
+  const { data, error } = await supabase
+    .from("editions")
+    .select("*")
+    .eq("event_key", eventKey)
+    .eq("year", year)
+    .single();
+
+  if (error || !data) {
+    console.error("Error fetching edition:", error);
+    return null;
+  }
+
+  return mapEdition(data);
+}
+
+export async function getCurrentEdition(eventKey: string): Promise<Edition | null> {
+  const { data, error } = await supabase
+    .from("editions")
+    .select("*")
+    .eq("event_key", eventKey)
+    .eq("is_current", true)
+    .limit(1);
+
+  if (error || !data || data.length === 0) {
+    console.error("Error fetching current edition:", error);
+    return null;
+  }
+
+  return mapEdition(data[0]);
+}
 
 export async function getBookings(): Promise<Booking[]> {
   const { data, error } = await supabase

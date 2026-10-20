@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { User, Menu } from "lucide-react";
 import logo from "../assets/mediana_logo.png";
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const { event, year } = useParams();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const homePath = event && year ? `/${event}/${year}` : "/";
+  const myBookingPath = event && year ? `/${event}/${year}/my-booking` : "/";
+  const adminPath = event ? `/${event}/admin` : "/";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,7 +30,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 group relative z-10">
+          <Link to={homePath} className="flex items-center gap-2 group relative z-10">
             <img 
               src={logo} 
               alt="Mediana Logo" 
@@ -39,7 +44,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           
           <nav className="hidden md:flex items-center gap-8">
             <Link
-              to="/my-booking"
+              to={myBookingPath}
               className="flex items-center gap-2 text-sm font-bold text-slate-300 hover:text-white transition-colors relative group px-4 py-2 rounded-full hover:bg-white/5"
             >
               <User className="w-4 h-4" />
@@ -62,14 +67,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="fixed inset-0 bg-[#121212] z-[55] flex flex-col items-center justify-center animate-fade-in md:hidden">
             <nav className="flex flex-col gap-10 text-center">
               <Link
-                to="/"
+                to={homePath}
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-3xl font-bold text-white hover:text-cyan-400 transition-colors"
               >
                 Home
               </Link>
               <Link
-                to="/my-booking"
+                to={myBookingPath}
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-3xl font-bold text-white hover:text-cyan-400 transition-colors"
               >
@@ -99,8 +104,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div>
               <h4 className="text-white font-bold mb-4">Quick Links</h4>
               <ul className="space-y-2">
-                <li><Link to="/" className="hover:text-cyan-400 transition-colors">Home</Link></li>
-                <li><Link to="/my-booking" className="hover:text-cyan-400 transition-colors">My Booking</Link></li>
+                <li><Link to={homePath} className="hover:text-cyan-400 transition-colors">Home</Link></li>
+                <li><Link to={myBookingPath} className="hover:text-cyan-400 transition-colors">My Booking</Link></li>
               </ul>
             </div>
           </div>
@@ -108,7 +113,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
             <p>© 2026 MEDIANA Co., Ltd. All rights reserved.</p>
             <div className="flex gap-6">
-              <Link to="/admin" className="text-slate-700 hover:text-cyan-400 text-xs transition-colors">
+              <Link to={adminPath} className="text-slate-700 hover:text-cyan-400 text-xs transition-colors">
                 Admin Portal
               </Link>
             </div>

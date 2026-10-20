@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Layout } from "../components/Layout";
 import { getBookings, updateBooking, cancelBooking, addBooking, markBookingAsRead, createNotification } from "../lib/store";
 import { Booking } from "../lib/types";
@@ -15,6 +15,7 @@ import { NotificationDropdown } from "../components/NotificationDropdown";
 
 export function Admin() {
   const navigate = useNavigate();
+  const { event } = useParams();
   const [view, setView] = useState<"calendar" | "list">("calendar");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filter, setFilter] = useState("");
@@ -293,7 +294,7 @@ export function Admin() {
 
   const handleLogout = () => {
     localStorage.removeItem("adminAuth");
-    navigate("/admin/login");
+    navigate(event ? `/${event}/admin/login` : "/");
   };
 
   const filteredBookings = bookings.filter(b => {

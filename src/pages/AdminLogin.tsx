@@ -1,18 +1,19 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Lock } from "lucide-react";
 
 export function AdminLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { event } = useParams();
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     const adminPassword = import.meta.env.VITE_ADMIN_PASSWORD || "mediana";
     if (password === adminPassword) {
       localStorage.setItem("adminAuth", "true");
-      navigate("/admin");
+      navigate(event ? `/${event}/admin` : "/");
     } else {
       setError("Invalid password");
     }

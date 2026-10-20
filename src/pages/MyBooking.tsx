@@ -6,7 +6,8 @@ import { Booking } from "../lib/types";
 import { Search, XCircle, Calendar, Clock, Package, AlertTriangle, Check, Pencil, X } from "lucide-react";
 import { format, parseISO, parse, addMinutes, isBefore } from "date-fns";
 import { cn } from "../lib/utils";
-import { EXHIBITION_DATES, OPERATING_HOURS, INQUIRY_TYPES, PRODUCT_INTERESTS } from "../lib/constants";
+import { INQUIRY_TYPES, PRODUCT_INTERESTS } from "../lib/constants";
+import { useEdition } from "../lib/EditionContext";
 
 export function MyBooking() {
   const [email, setEmail] = useState("");
@@ -239,24 +240,34 @@ export function MyBooking() {
 }
 
 function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, onClose: () => void, onSuccess: () => void }) {
+    const { edition } = useEdition();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [selectedDate, setSelectedDate] = useState(booking.date);
     const [selectedTime, setSelectedTime] = useState(booking.time);
-    
+
+    const exhibitionDates = useMemo(
+        () => Object.keys(edition.operatingHours).sort(),
+        [edition]
+    );
+
     // Time slots logic reused from Home.tsx (simplified)
     const timeSlots = useMemo(() => {
-        const { start, end } = OPERATING_HOURS[selectedDate] || OPERATING_HOURS["2026-02-09"]; // Default fallback
+        const hours =
+            edition.operatingHours[selectedDate] ||
+            edition.operatingHours[exhibitionDates[0]]; // Safe fallback to first available edition hours
+        if (!hours) return [];
+        const { start, end } = hours;
         const slots = [];
         let current = parse(start, "HH:mm", new Date());
         const endTime = parse(end, "HH:mm", new Date());
-    
+
         while (isBefore(current, endTime)) {
           const timeStr = format(current, "HH:mm");
           slots.push(timeStr);
           current = addMinutes(current, 30);
         }
         return slots;
-    }, [selectedDate]);
+    }, [selectedDate, edition, exhibitionDates]);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -347,7 +358,7 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                                 onChange={(e) => { setSelectedDate(e.target.value); setSelectedTime(""); }}
                                 className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400"
                             >
-                                {EXHIBITION_DATES.map(d => (
+                                {exhibitionDates.map(d => (
                                     <option key={d} value={d}>{d}</option>
                                 ))}
                             </select>

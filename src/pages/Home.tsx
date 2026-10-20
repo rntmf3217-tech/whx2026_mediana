@@ -3,7 +3,8 @@ import { createPortal } from "react-dom";
 import { format, parseISO, addMinutes, isBefore, parse } from "date-fns";
 import { Calendar as CalendarIcon, Clock, CheckCircle, ChevronDown, NotebookText, Pencil, MapPin, ArrowRight, Star, Zap, Shield, ExternalLink, X } from "lucide-react";
 import { Layout } from "../components/Layout";
-import { EXHIBITION_DATES, OPERATING_HOURS, INQUIRY_TYPES, PRODUCT_INTERESTS, COUNTRIES } from "../lib/constants";
+import { INQUIRY_TYPES, PRODUCT_INTERESTS, COUNTRIES } from "../lib/constants";
+import { useEdition } from "../lib/EditionContext";
 import { addBooking, getBookingsByDate, createNotification } from "../lib/store";
 import { Booking } from "../lib/types";
 import { sendConfirmationEmail } from "../lib/email";
@@ -12,8 +13,13 @@ import banner from "../assets/BG.png";
 import whxLogo from "../assets/WHX_logo.png";
 
 export function Home() {
+  const { edition } = useEdition();
   const bookingRef = useRef<HTMLDivElement>(null);
-  const [selectedDate, setSelectedDate] = useState(EXHIBITION_DATES[0]);
+  const exhibitionDates = useMemo(
+    () => Object.keys(edition.operatingHours).sort(),
+    [edition]
+  );
+  const [selectedDate, setSelectedDate] = useState(exhibitionDates[0] || "");
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [selectedInquiryType, setSelectedInquiryType] = useState<string>("");
   const [selectedProductInterest, setSelectedProductInterest] = useState<string>("");
@@ -41,7 +47,9 @@ export function Home() {
   };
 
   const timeSlots = useMemo(() => {
-    const { start, end } = OPERATING_HOURS[selectedDate];
+    const hours = edition.operatingHours[selectedDate];
+    if (!hours) return [];
+    const { start, end } = hours;
     const slots = [];
     let current = parse(start, "HH:mm", new Date());
     const endTime = parse(end, "HH:mm", new Date());
@@ -55,7 +63,7 @@ export function Home() {
       current = addMinutes(current, 30);
     }
     return slots;
-  }, [selectedDate, dayBookings]);
+  }, [selectedDate, dayBookings, edition]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -215,9 +223,9 @@ export function Home() {
               
               {/* Logo (image 2570) */}
               <div className="w-full md:w-auto flex justify-start">
-                <img 
-                  src={whxLogo} 
-                  alt="WHX Logo" 
+                <img
+                  src={edition.logoUrl || whxLogo}
+                  alt={edition.name}
                   className="w-[120px] md:w-[200px] h-auto object-contain mb-[-10px] md:mb-[-10px]"
                 />
               </div>
@@ -226,7 +234,7 @@ export function Home() {
               <div className="flex flex-col items-start gap-4 md:gap-6 w-full">
                 <h1 className="text-white font-[200] text-4xl md:text-7xl lg:text-[80px] xl:text-[100px] leading-[1.1] md:leading-[1.12] tracking-tight">
                   Join MEDIANA at <br/>
-                  <span className="font-bold">WHX Dubai 2026</span>
+                  <span className="font-bold">{edition.name}</span>
                 </h1>
                 <p className="text-white font-[400] text-lg md:text-2xl leading-[1.3] md:leading-[1.2] tracking-wide">Advancing Trust. Connecting Care. Expanding Possibility.</p>
               </div>
@@ -241,8 +249,10 @@ export function Home() {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
 
-                {/* Booth No (Booth No #N27.B58) */}
-                <div className="text-white font-[600] text-2xl md:text-3xl lg:text-[41px] leading-[32px] tracking-tight">Booth No #N27.B58</div>
+                {/* Booth No */}
+                {edition.booth && (
+                  <div className="text-white font-[600] text-2xl md:text-3xl lg:text-[41px] leading-[32px] tracking-tight">Booth No #{edition.booth}</div>
+                )}
               </div>
             </div>
 
@@ -317,7 +327,7 @@ export function Home() {
 
                 {/* Date Selection */}
                 <div className="flex gap-3 overflow-x-auto pb-6 mb-6 scrollbar-hide">
-                  {EXHIBITION_DATES.map((date) => {
+                  {exhibitionDates.map((date) => {
                     const isSelected = selectedDate === date;
                     return (
                       <button
@@ -571,27 +581,33 @@ export function Home() {
                 <div className="p-6 flex items-start gap-4 border-b border-white/5">
                   <MapPin className="w-6 h-6 text-[#28CBFF] mt-1" />
                   <div>
-                    <h3 className="font-bold text-white text-lg mb-1">Dubai Exhibition Centre</h3>
-                    <div className="text-[#28CBFF] text-2xl font-bold">Booth No #N27.B58</div>
+                    {edition.location && (
+                      <h3 className="font-bold text-white text-lg mb-1">{edition.location}</h3>
+                    )}
+                    {edition.booth && (
+                      <div className="text-[#28CBFF] text-2xl font-bold">Booth No #{edition.booth}</div>
+                    )}
                   </div>
                 </div>
-                <div className="relative w-full h-[400px] group">
-                  <iframe 
-                    src="https://www.expocad.com/host/fx/informa/arhe26/exfx.html?zoomto=N27.B58" 
-                    className="w-full h-full border-0 bg-white invert-[.9] grayscale-[.5] hover:invert-0 hover:grayscale-0 transition-all duration-500"
-                    title="Booth Location Map"
-                    loading="lazy"
-                  />
-                  <a 
-                    href="https://www.expocad.com/host/fx/informa/arhe26/exfx.html?zoomto=N27.B58" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="absolute bottom-4 right-4 bg-black/80 hover:bg-[#28CBFF] text-white hover:text-black px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all backdrop-blur-sm opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
-                  >
-                    <span>Open Full Map</span>
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                </div>
+                {edition.mapEmbedUrl && (
+                  <div className="relative w-full h-[400px] group">
+                    <iframe
+                      src={edition.mapEmbedUrl}
+                      className="w-full h-full border-0 bg-white invert-[.9] grayscale-[.5] hover:invert-0 hover:grayscale-0 transition-all duration-500"
+                      title="Booth Location Map"
+                      loading="lazy"
+                    />
+                    <a
+                      href={edition.mapEmbedUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute bottom-4 right-4 bg-black/80 hover:bg-[#28CBFF] text-white hover:text-black px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all backdrop-blur-sm opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
+                    >
+                      <span>Open Full Map</span>
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </div>
+                )}
             </div>
           </div>
         </div>

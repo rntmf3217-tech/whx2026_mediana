@@ -35,3 +35,20 @@ export interface Notification {
   isRead: boolean;
   actionType: 'create' | 'update' | 'cancel';
 }
+
+export interface Edition {
+  id: string;            // 'whx-2026'
+  eventKey: string;      // 'whx' | 'medica'
+  year: number;
+  name: string;          // 'WHX Dubai 2026'
+  startDate: string;
+  endDate: string;
+  operatingHours: Record<string, { start: string; end: string }>;
+  booth?: string;
+  location?: string;
+  mapEmbedUrl?: string;
+  logoUrl?: string;
+  hosts: string[];
+  registrationOpen: boolean;
+  isCurrent: boolean;
+}
