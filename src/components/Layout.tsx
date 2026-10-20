@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { User, Menu } from "lucide-react";
 import logo from "../assets/mediana-logo-white.svg";
+import brandBg from "../assets/brand-hero-bg.webp";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const { event, year } = useParams();
@@ -10,7 +11,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const homePath = event && year ? `/${event}/${year}` : "/";
   const myBookingPath = event && year ? `/${event}/${year}/my-booking` : "/";
-  const adminPath = event ? `/${event}/admin` : "/";
+  const adminPath = "/admin";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,7 +23,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col text-white bg-[#0A1124] selection:bg-brand-blue/30 selection:text-white">
-      <header 
+      {/* Brand visual-identity backdrop: fixed, covers the whole page behind all content */}
+      <div
+        aria-hidden
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat pointer-events-none"
+        style={{ backgroundImage: `url(${brandBg})`, backgroundColor: "#0A1124" }}
+      />
+      <div
+        aria-hidden
+        className="fixed inset-0 z-0 pointer-events-none"
+        style={{ background: "linear-gradient(180deg, rgba(10,17,36,0.45) 0%, rgba(10,17,36,0.72) 100%)" }}
+      />
+      <header
         className={`fixed top-0 w-full z-50 transition-all duration-500 ${
           scrolled 
             ? "bg-[#0A1124]/90 backdrop-blur-xl border-b border-white/5 py-4 shadow-2xl" 
@@ -85,7 +97,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         )}
       </header>
 
-      <main className="flex-1 w-full relative z-0">
+      <main className="flex-1 w-full relative z-10">
         {children}
       </main>
 

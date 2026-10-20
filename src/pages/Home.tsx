@@ -9,7 +9,6 @@ import { addBooking, getBookingsByDate, createNotification } from "../lib/store"
 import { Booking } from "../lib/types";
 import { sendConfirmationEmail } from "../lib/email";
 import { cn } from "../lib/utils";
-import brandHero from "../assets/brand-hero-bg.webp";
 import whxLogo from "../assets/WHX_logo.png";
 
 export function Home() {
@@ -202,19 +201,7 @@ export function Home() {
     <Layout>
       {/* Hero Section */}
       <div className="relative w-full h-screen overflow-hidden flex flex-col justify-center">
-        {/* Background: MEDIANA brand visual identity image */}
-        <div
-          className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${brandHero})`, backgroundColor: "#113577" }}
-        />
-
-        {/* Subtle overlay for headline legibility */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            background: "linear-gradient(90deg, rgba(5,10,24,0.45) 0%, rgba(5,10,24,0.15) 45%, rgba(5,10,24,0) 100%)"
-          }}
-        />
+        {/* Hero content sits over the page-wide brand VI backdrop defined in Layout */}
         
         {/* Content Container (Matches Frame 1618873511 position) */}
         <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 h-full flex flex-col justify-center pt-32 pb-32">
@@ -276,7 +263,7 @@ export function Home() {
       </div>
 
       {/* Main Content Split View */}
-      <div ref={bookingRef} className="min-h-screen bg-[#0A1124] relative z-20">
+      <div ref={bookingRef} className="min-h-screen relative z-20">
         <div className="max-w-7xl mx-auto px-4 md:px-12 py-16 md:py-24">
           <div className="flex flex-col gap-12 max-w-3xl mx-auto w-full">
             
