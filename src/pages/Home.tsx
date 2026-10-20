@@ -293,6 +293,8 @@ export function Home() {
               </div>
             )}
 
+            {!isClosed && (
+              <>
             {/* Inquiry Type Section */}
             <div className="bg-white/5 rounded-3xl p-8 border border-white/10 backdrop-blur-sm">
                 <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
@@ -584,6 +586,9 @@ export function Home() {
                 </form>
               </div>
             </div>
+
+              </>
+            )}
 
             {/* Location Info */}
             <div className="glass rounded-3xl border border-white/10 overflow-hidden bg-white/5">
