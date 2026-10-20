@@ -11,9 +11,10 @@ interface BookingDetailModalProps {
   onClose: () => void;
   onUpdate?: (bookingId: string, updates: Partial<Booking>) => Promise<void>;
   onDelete?: (bookingId: string) => Promise<void>;
+  hosts?: readonly string[];
 }
 
-export function BookingDetailModal({ isOpen, booking, onClose, onUpdate, onDelete }: BookingDetailModalProps) {
+export function BookingDetailModal({ isOpen, booking, onClose, onUpdate, onDelete, hosts }: BookingDetailModalProps) {
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -252,7 +253,7 @@ Created At: ${format(parseISO(booking.createdAt), "yyyy-MM-dd HH:mm:ss")}
                                 onChange={(e) => handleChange('meetingWith', e.target.value)}
                                 className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-white focus:border-cyan-400 focus:outline-none"
                             >
-                                {MEETING_HOSTS.map(host => (
+                                {(hosts && hosts.length ? hosts : MEETING_HOSTS).map(host => (
                                     <option key={host} value={host}>{host}</option>
                                 ))}
                             </select>

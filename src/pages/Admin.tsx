@@ -569,7 +569,7 @@ export function Admin() {
                 className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 w-full md:w-40"
               >
                 <option value="">모든 담당자</option>
-                {MEETING_HOSTS.map(host => (
+                {(selectedEdition?.hosts?.length ? ["담당자 미선택", ...selectedEdition.hosts] : MEETING_HOSTS).map(host => (
                   <option key={host} value={host}>{host}</option>
                 ))}
               </select>
@@ -756,12 +756,13 @@ export function Admin() {
       </div>
       
       {detailModal.isOpen && detailModal.booking && (
-        <BookingDetailModal 
-            isOpen={detailModal.isOpen} 
-            booking={detailModal.booking} 
-            onClose={() => setDetailModal({ isOpen: false, booking: null })} 
+        <BookingDetailModal
+            isOpen={detailModal.isOpen}
+            booking={detailModal.booking}
+            onClose={() => setDetailModal({ isOpen: false, booking: null })}
             onUpdate={handleBookingUpdate}
             onDelete={handleBookingDelete}
+            hosts={selectedEdition?.hosts?.length ? ["담당자 미선택", ...selectedEdition.hosts] : MEETING_HOSTS}
         />
       )}
 
