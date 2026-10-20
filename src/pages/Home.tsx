@@ -148,7 +148,9 @@ export function Home() {
           inquiryType: booking.inquiryType,
           date: booking.date,
           time: booking.time,
-          bookingId: (newBooking as any).id
+          bookingId: (newBooking as any).id,
+          eventKey: edition.eventKey,
+          year: edition.year
         });
       }
     } catch (error) {

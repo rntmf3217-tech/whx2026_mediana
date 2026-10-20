@@ -31,6 +31,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const ADMIN_LIST_ID = process.env.STIBEE_ADMIN_LIST_ID || "461812";
   const ADMIN_TRIGGER_URL = process.env.STIBEE_TRIGGER_ADMIN_NOTIFY;
 
+  // Canonical site URL for links in emails (set SITE_URL in Vercel)
+  const SITE_URL = process.env.SITE_URL || "https://reservation.mediana-global.com";
+
   if (!STIBEE_API_KEY || !STIBEE_LIST_ID || !TRIGGER_URL) {
     console.error('Missing configuration:', { STIBEE_LIST_ID_EXISTS: !!STIBEE_LIST_ID, TRIGGER_URL_EXISTS: !!TRIGGER_URL });
     return res.status(500).json({ error: 'Server configuration error' });
@@ -131,7 +134,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             inquiry_type: String(inquiry_type || "").trim(),
                             meeting_date: String(meeting_date).trim(),
                             meeting_time: String(meeting_time).trim(),
-                            manage_link: "https://whx2026-mediana.vercel.app/admin"
+                            manage_link: `${SITE_URL}/admin`
                         })
                     });
                     

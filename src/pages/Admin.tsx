@@ -314,7 +314,9 @@ export function Admin() {
         inquiryType: newBooking.inquiryType,
         date: newBooking.date,
         time: newBooking.time,
-        bookingId: (newBooking as any).id // If addBooking returns ID
+        bookingId: (newBooking as any).id, // If addBooking returns ID
+        eventKey: selectedEdition?.eventKey ?? "",
+        year: selectedEdition?.year ?? 0
       });
 
       // Reset form
