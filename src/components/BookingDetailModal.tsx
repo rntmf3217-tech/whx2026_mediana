@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Calendar, Clock, MapPin, Building, User, Mail, MessageSquare, Tag, Copy, Check, Users, Edit2, Save, Trash2, AlertTriangle } from 'lucide-react';
 import { Booking } from '../lib/types';
 import { format, parseISO, addMinutes, parse, isBefore } from 'date-fns';
-import { COUNTRIES, MEETING_HOSTS, PRODUCT_INTERESTS, INQUIRY_TYPES, EXHIBITION_DATES, OPERATING_HOURS } from '../lib/constants';
+import { COUNTRIES, MEETING_HOSTS, PRODUCT_INTERESTS, INQUIRY_TYPES, OPERATING_HOURS } from '../lib/constants';
 
 interface BookingDetailModalProps {
   isOpen: boolean;
@@ -12,9 +12,10 @@ interface BookingDetailModalProps {
   onUpdate?: (bookingId: string, updates: Partial<Booking>) => Promise<void>;
   onDelete?: (bookingId: string) => Promise<void>;
   hosts?: readonly string[];
+  operatingHours?: Record<string, { start: string; end: string }>;
 }
 
-export function BookingDetailModal({ isOpen, booking, onClose, onUpdate, onDelete, hosts }: BookingDetailModalProps) {
+export function BookingDetailModal({ isOpen, booking, onClose, onUpdate, onDelete, hosts, operatingHours }: BookingDetailModalProps) {
   const [copied, setCopied] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -31,11 +32,17 @@ export function BookingDetailModal({ isOpen, booking, onClose, onUpdate, onDelet
     }
   }, [booking]);
 
+  const editionHours = React.useMemo(
+    () => (operatingHours && Object.keys(operatingHours).length ? operatingHours : OPERATING_HOURS),
+    [operatingHours]
+  );
+  const editionDates = React.useMemo(() => Object.keys(editionHours).sort(), [editionHours]);
+
   const timeSlots = React.useMemo(() => {
     const dateStr = formData.date;
-    if (!dateStr || !OPERATING_HOURS[dateStr]) return [];
-    
-    const { start, end } = OPERATING_HOURS[dateStr];
+    if (!dateStr || !editionHours[dateStr]) return [];
+
+    const { start, end } = editionHours[dateStr];
     const slots = [];
     // Use an arbitrary date for parsing time
     const baseDate = new Date(); 
@@ -47,7 +54,7 @@ export function BookingDetailModal({ isOpen, booking, onClose, onUpdate, onDelet
       current = addMinutes(current, 30);
     }
     return slots;
-  }, [formData.date]);
+  }, [formData.date, editionHours]);
 
   if (!isOpen || !booking) return null;
 
@@ -272,7 +279,7 @@ Created At: ${format(parseISO(booking.createdAt), "yyyy-MM-dd HH:mm:ss")}
                                 onChange={(e) => handleChange('date', e.target.value)}
                                 className="w-full bg-black/40 border border-white/10 rounded px-2 py-1 text-white focus:border-brand-cyan focus:outline-none text-sm"
                             >
-                                {EXHIBITION_DATES.map(date => (
+                                {editionDates.map(date => (
                                     <option key={date} value={date}>{format(parseISO(date), "MMM d, yyyy")}</option>
                                 ))}
                             </select>

@@ -18,6 +18,10 @@ export function Home() {
     () => Object.keys(edition.operatingHours).sort(),
     [edition]
   );
+  const isClosed = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return !edition.registrationOpen || edition.endDate < today;
+  }, [edition]);
   const [selectedDate, setSelectedDate] = useState(exhibitionDates[0] || "");
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [selectedInquiryType, setSelectedInquiryType] = useState<string>("");
@@ -66,7 +70,12 @@ export function Home() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
+    if (isClosed) {
+      alert("Reservations for this exhibition are closed.");
+      return;
+    }
+
     if (!selectedDate) {
       alert("Please select a date.");
       return;
@@ -276,6 +285,13 @@ export function Home() {
                 </h2>
                 <p className="text-slate-400 text-lg leading-relaxed">Our team is ready to discuss your needs and introduce Mediana’s medical solutions.</p>
             </div>
+
+            {isClosed && (
+              <div className="rounded-2xl border border-brand-red/30 bg-brand-red/10 p-6 text-center">
+                <p className="text-white font-bold text-lg">Reservations for {edition.name} are closed.</p>
+                <p className="text-slate-300 text-sm mt-1">This exhibition has ended or is no longer accepting bookings.</p>
+              </div>
+            )}
 
             {/* Inquiry Type Section */}
             <div className="bg-white/5 rounded-3xl p-8 border border-white/10 backdrop-blur-sm">
@@ -560,10 +576,10 @@ export function Home() {
 
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isClosed}
                     className="w-full py-5 bg-gradient-to-r from-brand-navy to-brand-blue text-white font-bold border border-brand-blue/40 rounded-xl shadow-lg shadow-brand-navy/40 hover:scale-[1.02] hover:shadow-brand-blue/40 transition-all duration-300 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting ? "Processing..." : "Confirm Booking"}
+                    {isClosed ? "Reservations Closed" : isSubmitting ? "Processing..." : "Confirm Booking"}
                   </button>
                 </form>
               </div>

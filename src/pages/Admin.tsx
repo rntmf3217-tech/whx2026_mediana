@@ -765,6 +765,7 @@ export function Admin() {
             onUpdate={handleBookingUpdate}
             onDelete={handleBookingDelete}
             hosts={selectedEdition?.hosts?.length ? ["담당자 미선택", ...selectedEdition.hosts] : MEETING_HOSTS}
+            operatingHours={selectedEdition?.operatingHours}
         />
       )}
 
