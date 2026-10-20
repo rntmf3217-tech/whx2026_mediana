@@ -208,11 +208,20 @@ export function Home() {
           style={{ backgroundImage: `url(${brandBg})`, backgroundColor: "#113577" }}
         />
 
+        {/* Brand grid lattice (VI 격자무늬) */}
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(0deg, rgba(75,113,180,0.28) 0, rgba(75,113,180,0.28) 1px, transparent 1px, transparent 88px), repeating-linear-gradient(90deg, rgba(75,113,180,0.28) 0, rgba(75,113,180,0.28) 1px, transparent 1px, transparent 88px)"
+          }}
+        />
+
         {/* Subtle overlay: darken the left for headline legibility, keep the right-side brand graphics visible */}
         <div
           className="absolute inset-0 z-0"
           style={{
-            background: "linear-gradient(90deg, rgba(5,10,24,0.60) 0%, rgba(5,10,24,0.25) 50%, rgba(5,10,24,0) 100%)"
+            background: "linear-gradient(90deg, rgba(5,10,24,0.55) 0%, rgba(5,10,24,0.2) 50%, rgba(5,10,24,0) 100%)"
           }}
         />
         
