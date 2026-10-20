@@ -9,7 +9,7 @@ import { addBooking, getBookingsByDate, createNotification } from "../lib/store"
 import { Booking } from "../lib/types";
 import { sendConfirmationEmail } from "../lib/email";
 import { cn } from "../lib/utils";
-import brandBg from "../assets/brand-identity-navy.svg";
+import brandHero from "../assets/brand-hero-bg.webp";
 import whxLogo from "../assets/WHX_logo.png";
 
 export function Home() {
@@ -202,26 +202,17 @@ export function Home() {
     <Layout>
       {/* Hero Section */}
       <div className="relative w-full h-screen overflow-hidden flex flex-col justify-center">
-        {/* Background: MEDIANA brand visual identity */}
+        {/* Background: MEDIANA brand visual identity image */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${brandBg})`, backgroundColor: "#113577" }}
+          style={{ backgroundImage: `url(${brandHero})`, backgroundColor: "#113577" }}
         />
 
-        {/* Brand grid lattice (VI 격자무늬) */}
+        {/* Subtle overlay for headline legibility */}
         <div
           className="absolute inset-0 z-0"
           style={{
-            backgroundImage:
-              "repeating-linear-gradient(0deg, rgba(75,113,180,0.28) 0, rgba(75,113,180,0.28) 1px, transparent 1px, transparent 88px), repeating-linear-gradient(90deg, rgba(75,113,180,0.28) 0, rgba(75,113,180,0.28) 1px, transparent 1px, transparent 88px)"
-          }}
-        />
-
-        {/* Subtle overlay: darken the left for headline legibility, keep the right-side brand graphics visible */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            background: "linear-gradient(90deg, rgba(5,10,24,0.55) 0%, rgba(5,10,24,0.2) 50%, rgba(5,10,24,0) 100%)"
+            background: "linear-gradient(90deg, rgba(5,10,24,0.45) 0%, rgba(5,10,24,0.15) 45%, rgba(5,10,24,0) 100%)"
           }}
         />
         
