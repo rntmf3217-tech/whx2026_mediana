@@ -69,6 +69,38 @@ export async function getCurrentEdition(eventKey: string): Promise<Edition | nul
   return mapEdition(data[0]);
 }
 
+export async function getEditions(): Promise<Edition[]> {
+  const { data, error } = await supabase
+    .from("editions")
+    .select("*")
+    .order("event_key", { ascending: true })
+    .order("year", { ascending: false });
+
+  if (error || !data) {
+    console.error("Error fetching editions:", error);
+    return [];
+  }
+
+  return (data as EditionRow[]).map(mapEdition);
+}
+
+export async function getActiveEdition(): Promise<Edition | null> {
+  const editions = await getEditions();
+  if (editions.length === 0) return null;
+
+  // Today as YYYY-MM-DD for string comparison against start_date/end_date.
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Ongoing or upcoming editions (end_date >= today), nearest start first.
+  const upcoming = editions
+    .filter((e) => e.endDate >= today)
+    .sort((a, b) => a.startDate.localeCompare(b.startDate));
+  if (upcoming.length > 0) return upcoming[0];
+
+  // Otherwise, the most recent past edition (latest end_date).
+  return [...editions].sort((a, b) => b.endDate.localeCompare(a.endDate))[0];
+}
+
 export async function getBookings(editionId?: string): Promise<Booking[]> {
   let query = supabase
     .from("bookings")

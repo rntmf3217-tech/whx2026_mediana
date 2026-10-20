@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Bell, Check } from 'lucide-react';
 import { Notification } from '../lib/types';
 import { getNotifications, markNotificationAsRead } from '../lib/store';
@@ -8,19 +8,20 @@ import { supabase } from '../lib/supabase';
 
 interface NotificationDropdownProps {
   onNotificationClick: (bookingId: string) => void;
+  editionId?: string;
 }
 
-export function NotificationDropdown({ onNotificationClick }: NotificationDropdownProps) {
+export function NotificationDropdown({ onNotificationClick, editionId }: NotificationDropdownProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const fetchNotifications = async () => {
-    const data = await getNotifications();
+  const fetchNotifications = useCallback(async () => {
+    const data = await getNotifications(editionId);
     setNotifications(data);
     setUnreadCount(data.filter(n => !n.isRead).length);
-  };
+  }, [editionId]);
 
   useEffect(() => {
     fetchNotifications();
@@ -37,7 +38,7 @@ export function NotificationDropdown({ onNotificationClick }: NotificationDropdo
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchNotifications]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

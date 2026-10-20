@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Layout } from "../components/Layout";
-import { getBookings, updateBooking, cancelBooking, addBooking, markBookingAsRead, createNotification } from "../lib/store";
-import { Booking } from "../lib/types";
-import { EXHIBITION_DATES, INQUIRY_TYPES, PRODUCT_INTERESTS, COUNTRIES, OPERATING_HOURS, MEETING_HOSTS } from "../lib/constants";
+import { getBookings, updateBooking, cancelBooking, addBooking, markBookingAsRead, createNotification, getEditions, getActiveEdition } from "../lib/store";
+import { Booking, Edition } from "../lib/types";
+import { INQUIRY_TYPES, PRODUCT_INTERESTS, COUNTRIES, MEETING_HOSTS } from "../lib/constants";
 import { Download, Calendar as CalendarIcon, List, Search, Trash2, Edit2, Plus, X, Check, AlertTriangle, LogOut, Eye, Users } from "lucide-react";
 import { format, parseISO, parse, addMinutes, isBefore } from "date-fns";
 import { cn } from "../lib/utils";
@@ -15,7 +15,9 @@ import { NotificationDropdown } from "../components/NotificationDropdown";
 
 export function Admin() {
   const navigate = useNavigate();
-  const { event } = useParams();
+  const [editions, setEditions] = useState<Edition[]>([]);
+  const [selectedEventKey, setSelectedEventKey] = useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [view, setView] = useState<"calendar" | "list">("calendar");
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filter, setFilter] = useState("");
@@ -31,10 +33,67 @@ export function Admin() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Currently selected edition, derived from the two header dropdowns.
+  const selectedEdition = useMemo(
+    () => editions.find((e) => e.eventKey === selectedEventKey && e.year === selectedYear) ?? null,
+    [editions, selectedEventKey, selectedYear]
+  );
+
+  // Distinct exhibitions (event keys) for the exhibition dropdown.
+  const eventKeys = useMemo(
+    () => Array.from(new Set(editions.map((e) => e.eventKey))),
+    [editions]
+  );
+
+  // Years available for the currently selected exhibition, newest first.
+  const yearOptions = useMemo(
+    () =>
+      editions
+        .filter((e) => e.eventKey === selectedEventKey)
+        .map((e) => e.year)
+        .sort((a, b) => b - a),
+    [editions, selectedEventKey]
+  );
+
+  // Date columns / slots come from the selected edition's operating hours.
+  const editionDates = useMemo(
+    () => (selectedEdition ? Object.keys(selectedEdition.operatingHours).sort() : []),
+    [selectedEdition]
+  );
+
+  // Load editions once and default the selection to the active edition.
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      const [eds, active] = await Promise.all([getEditions(), getActiveEdition()]);
+      if (cancelled) return;
+      setEditions(eds);
+      const def = active ?? eds[0] ?? null;
+      if (def) {
+        setSelectedEventKey(def.eventKey);
+        setSelectedYear(def.year);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const refresh = useCallback(async () => {
+    if (!selectedEdition) {
+      setBookings([]);
+      return;
+    }
+    const data = await getBookings(selectedEdition.id);
+    setBookings(data);
+  }, [selectedEdition]);
+
+  // Re-fetch bookings whenever the selected edition changes.
   useEffect(() => {
     refresh();
-  }, []);
-  
+  }, [refresh]);
+
   // New Booking State
   const [newBooking, setNewBooking] = useState<{
     date: string;
@@ -48,7 +107,7 @@ export function Admin() {
     message: string;
     customerType?: "new" | "existing";
   }>({
-    date: EXHIBITION_DATES[0],
+    date: "",
     time: "",
     inquiryType: "",
     productInterest: "",
@@ -60,9 +119,13 @@ export function Admin() {
     customerType: undefined
   });
 
-  const refresh = async () => {
-    const data = await getBookings();
-    setBookings(data);
+  const handleExhibitionChange = (eventKey: string) => {
+    setSelectedEventKey(eventKey);
+    const years = editions
+      .filter((e) => e.eventKey === eventKey)
+      .map((e) => e.year)
+      .sort((a, b) => b - a);
+    setSelectedYear(years[0] ?? null);
   };
 
   const getCustomerType = (booking: Booking) => {
@@ -105,7 +168,8 @@ export function Admin() {
         await createNotification({
             bookingId: id,
             message: `Admin updated a booking for ${updates.companyName || originalBooking.companyName}.`,
-            actionType: 'update'
+            actionType: 'update',
+            editionId: selectedEdition?.id
         });
 
         // Check if we should send email to customer
@@ -135,7 +199,7 @@ export function Admin() {
         await refresh();
         
         // Update the modal with new data
-        const updatedBookings = await getBookings();
+        const updatedBookings = await getBookings(selectedEdition?.id);
         const updatedBooking = updatedBookings.find(b => b.id === id);
         if (updatedBooking) {
             setDetailModal(prev => ({ ...prev, booking: updatedBooking }));
@@ -162,7 +226,8 @@ export function Admin() {
         await createNotification({
             bookingId: bookingToDelete.id,
             message: `Admin cancelled a booking for ${bookingToDelete.companyName}.`,
-            actionType: 'cancel'
+            actionType: 'cancel',
+            editionId: selectedEdition?.id
         });
     }
 
@@ -182,9 +247,11 @@ export function Admin() {
     // Determine which date to use (add modal or edit modal)
     // Simplified since we only use this for Add Modal now. Edit modal has its own logic or simply text input for now.
     const targetDate = newBooking.date;
-    
-    if (!targetDate) return [];
-    const { start, end } = OPERATING_HOURS[targetDate];
+
+    if (!targetDate || !selectedEdition) return [];
+    const hours = selectedEdition.operatingHours[targetDate];
+    if (!hours) return [];
+    const { start, end } = hours;
     const slots = [];
     let current = parse(start, "HH:mm", new Date());
     const endTime = parse(end, "HH:mm", new Date());
@@ -204,7 +271,7 @@ export function Admin() {
       current = addMinutes(current, 30);
     }
     return slots;
-  }, [newBooking.date, bookings]);
+  }, [newBooking.date, bookings, selectedEdition]);
 
   const handleAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -221,6 +288,7 @@ export function Admin() {
         inquiryType: newBooking.inquiryType as any,
         productInterest: newBooking.productInterest as any,
         customerType: newBooking.customerType,
+        editionId: selectedEdition?.id,
       }), timeout(8000)]);
       
       if (newBookingResult) {
@@ -228,13 +296,14 @@ export function Admin() {
         await createNotification({
             bookingId: (newBookingResult as any).id,
             message: `Admin created a booking for ${newBooking.companyName}.`,
-            actionType: 'create'
+            actionType: 'create',
+            editionId: selectedEdition?.id
         });
       }
       
       await refresh();
       setShowAddModal(false);
-      
+
       // Trigger Emails (Customer Confirmation + Admin Notification)
       // Note: Admin notification is handled inside sendConfirmationEmail -> api/send-confirmation
       await sendConfirmationEmail({
@@ -250,7 +319,7 @@ export function Admin() {
 
       // Reset form
       setNewBooking({
-        date: EXHIBITION_DATES[0],
+        date: editionDates[0] ?? "",
         time: "",
         inquiryType: "",
         productInterest: "",
@@ -294,7 +363,7 @@ export function Admin() {
 
   const handleLogout = () => {
     localStorage.removeItem("adminAuth");
-    navigate(event ? `/${event}/admin/login` : "/");
+    navigate("/admin/login");
   };
 
   const filteredBookings = bookings.filter(b => {
@@ -353,7 +422,8 @@ export function Admin() {
                 await createNotification({
                     bookingId: bookingToDelete.id,
                     message: `Admin cancelled a booking for ${bookingToDelete.companyName}.`,
-                    actionType: 'cancel'
+                    actionType: 'cancel',
+                    editionId: selectedEdition?.id
                 });
             }
 
@@ -381,6 +451,34 @@ export function Admin() {
           <div>
             <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 mb-2">Admin Dashboard</h1>
             <p className="text-slate-400">Manage reservations and schedules.</p>
+            <div className="flex flex-wrap gap-3 mt-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-slate-500 ml-1">전시회</label>
+                <select
+                  value={selectedEventKey}
+                  onChange={(e) => handleExhibitionChange(e.target.value)}
+                  className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 min-w-[10rem]"
+                >
+                  {eventKeys.length === 0 && <option value="">—</option>}
+                  {eventKeys.map(ek => (
+                    <option key={ek} value={ek}>{ek.toUpperCase()}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-slate-500 ml-1">연도</label>
+                <select
+                  value={selectedYear ?? ""}
+                  onChange={(e) => setSelectedYear(e.target.value ? Number(e.target.value) : null)}
+                  className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-400 min-w-[7rem]"
+                >
+                  {yearOptions.length === 0 && <option value="">—</option>}
+                  {yearOptions.map(y => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
           <div className="flex gap-4">
             {selectedIds.size > 0 && (
@@ -397,7 +495,7 @@ export function Admin() {
                 setShowAddModal(true);
                 // Reset form when opening modal
                 setNewBooking({
-                  date: EXHIBITION_DATES[0],
+                  date: editionDates[0] ?? "",
                   time: "",
                   inquiryType: "",
                   productInterest: "",
@@ -422,7 +520,7 @@ export function Admin() {
             >
               <LogOut className="w-4 h-4" />
             </button>
-            <NotificationDropdown onNotificationClick={handleNotificationClick} />
+            <NotificationDropdown onNotificationClick={handleNotificationClick} editionId={selectedEdition?.id} />
           </div>
         </div>
 
@@ -596,7 +694,7 @@ export function Admin() {
             </div>
           ) : (
             <div className="p-6 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {EXHIBITION_DATES.map(date => {
+              {editionDates.map(date => {
                 const dayBookings = filteredBookings.filter(b => b.date === date).sort((a, b) => a.time.localeCompare(b.time));
                 return (
                   <div key={date} className="bg-white/5 rounded-xl border border-white/10 p-4">
@@ -709,7 +807,7 @@ export function Admin() {
                     onChange={(e) => setNewBooking({...newBooking, date: e.target.value, time: ""})}
                     className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-cyan-400 focus:outline-none"
                   >
-                    {EXHIBITION_DATES.map(date => (
+                    {editionDates.map(date => (
                       <option key={date} value={date}>{format(parseISO(date), "MMM d, yyyy")}</option>
                     ))}
                   </select>

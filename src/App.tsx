@@ -1,39 +1,47 @@
-import React, { useEffect } from "react";
-import { BrowserRouter, Routes, Route, useParams, useNavigate, Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route, useParams, useNavigate, Navigate, Link } from "react-router-dom";
 import { Home } from "./pages/Home";
 import { MyBooking } from "./pages/MyBooking";
 import { Admin } from "./pages/Admin";
 import { AdminLogin } from "./pages/AdminLogin";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { EditionProvider } from "./lib/EditionContext";
-import { getCurrentEdition } from "./lib/store";
+import { getCurrentEdition, getActiveEdition } from "./lib/store";
+import { Edition } from "./lib/types";
 
-function Landing() {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505] text-white p-6 relative overflow-hidden">
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="relative z-10 flex flex-col items-center text-center">
-        <h1 className="text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 mb-4">
-          MEDIANA
-        </h1>
-        <p className="text-slate-400 mb-12 text-lg">Select an exhibition to book your meeting.</p>
-        <div className="flex flex-col sm:flex-row gap-6">
-          <Link
-            to="/whx"
-            className="px-12 py-5 bg-white text-black font-bold rounded-full text-xl hover:scale-105 transition-transform shadow-xl shadow-white/10"
-          >
-            WHX
-          </Link>
-          <Link
-            to="/medica"
-            className="px-12 py-5 border border-white/30 text-white font-bold rounded-full text-xl hover:bg-white/10 transition-colors"
-          >
-            MEDICA
-          </Link>
-        </div>
+function RootRedirect() {
+  const [edition, setEdition] = useState<Edition | null>(null);
+  const [resolved, setResolved] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    getActiveEdition().then((e) => {
+      if (cancelled) return;
+      setEdition(e);
+      setResolved(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!resolved) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white">
+        <div className="text-slate-400 text-lg animate-pulse">Loading…</div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (!edition) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#050505] text-white p-6 text-center">
+        <p className="text-slate-400 text-lg">No exhibition is available right now.</p>
+      </div>
+    );
+  }
+
+  return <Navigate to={`/${edition.eventKey}/${edition.year}`} replace />;
 }
 
 function EventRedirect() {
@@ -86,7 +94,12 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<RootRedirect />} />
+
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<ProtectedRoute />}>
+          <Route index element={<Admin />} />
+        </Route>
 
         <Route
           path="/:event/:year"
@@ -104,25 +117,6 @@ function App() {
             </EditionProvider>
           }
         />
-
-        <Route
-          path="/:event/admin/login"
-          element={
-            <EditionProvider>
-              <AdminLogin />
-            </EditionProvider>
-          }
-        />
-        <Route path="/:event/admin" element={<ProtectedRoute />}>
-          <Route
-            index
-            element={
-              <EditionProvider>
-                <Admin />
-              </EditionProvider>
-            }
-          />
-        </Route>
 
         <Route path="/:event" element={<EventRedirect />} />
 
