@@ -16,7 +16,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { subscriber, name, company, country, inquiry_type, meeting_date, meeting_time, manage_link } = req.body;
+  const { subscriber, name, company, country, inquiry_type, meeting_date, meeting_time, manage_link, exhibition, booth, location } = req.body;
 
   if (!subscriber || !name || !meeting_date || !meeting_time) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -65,7 +65,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             // inquiry_type: String(inquiry_type || "").trim(), // Same for inquiry_type
             meeting_date: String(meeting_date).trim(),
             meeting_time: String(meeting_time).trim(),
-            manage_link: String(manage_link || "").trim()
+            manage_link: String(manage_link || "").trim(),
+            exhibition: String(exhibition || "").trim(),
+            booth: String(booth || "").trim(),
+            location: String(location || "").trim()
           }
         },
         updateEnabled: true
@@ -134,7 +137,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                             inquiry_type: String(inquiry_type || "").trim(),
                             meeting_date: String(meeting_date).trim(),
                             meeting_time: String(meeting_time).trim(),
-                            manage_link: `${SITE_URL}/admin`
+                            manage_link: `${SITE_URL}/admin`,
+                            exhibition: String(exhibition || "").trim(),
+                            booth: String(booth || "").trim(),
+                            location: String(location || "").trim()
                         })
                     });
                     

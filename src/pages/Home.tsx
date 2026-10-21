@@ -159,7 +159,10 @@ export function Home() {
           time: booking.time,
           bookingId: (newBooking as any).id,
           eventKey: edition.eventKey,
-          year: edition.year
+          year: edition.year,
+          exhibitionName: edition.name,
+          booth: edition.booth,
+          location: edition.location
         });
       }
     } catch (error) {

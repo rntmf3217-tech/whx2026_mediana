@@ -316,7 +316,10 @@ export function Admin() {
         time: newBooking.time,
         bookingId: (newBooking as any).id, // If addBooking returns ID
         eventKey: selectedEdition?.eventKey ?? "",
-        year: selectedEdition?.year ?? 0
+        year: selectedEdition?.year ?? 0,
+        exhibitionName: selectedEdition?.name ?? "",
+        booth: selectedEdition?.booth,
+        location: selectedEdition?.location
       });
 
       // Reset form

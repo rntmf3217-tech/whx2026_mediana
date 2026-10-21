@@ -11,9 +11,12 @@ interface EmailParams {
   bookingId: string;
   eventKey: string;
   year: number;
+  exhibitionName: string;
+  booth?: string;
+  location?: string;
 }
 
-export async function sendConfirmationEmail({ name, email, companyName, country, inquiryType, date, time, eventKey, year }: EmailParams) {
+export async function sendConfirmationEmail({ name, email, companyName, country, inquiryType, date, time, eventKey, year, exhibitionName, booth, location }: EmailParams) {
   try {
     const formattedDate = format(parseISO(date), "MMMM d, yyyy"); // "March 10, 2026"
     
@@ -33,6 +36,9 @@ export async function sendConfirmationEmail({ name, email, companyName, country,
         meeting_date: formattedDate,
         meeting_time: time,
         manage_link: `${window.location.origin}/${eventKey}/${year}/my-booking`,
+        exhibition: exhibitionName,
+        booth: booth ?? "",
+        location: location ?? "",
       }),
     });
 
