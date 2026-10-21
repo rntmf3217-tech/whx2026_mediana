@@ -256,7 +256,7 @@ export function Home() {
 
                 {/* Booth No */}
                 {edition.booth && (
-                  <div className="text-white font-[600] text-2xl md:text-3xl lg:text-[41px] leading-[32px] tracking-tight">Booth No #{edition.booth}</div>
+                  <div className="text-brand-cyan font-[600] text-2xl md:text-3xl lg:text-[41px] leading-[32px] tracking-tight">Booth No #{edition.booth}</div>
                 )}
               </div>
             </div>
