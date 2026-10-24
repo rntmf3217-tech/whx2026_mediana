@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { format, parseISO } from 'date-fns';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS headers
@@ -16,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email, name, date, time } = req.body;
+  const { email, name, date, time, exhibition, booth, location } = req.body;
   const STIBEE_API_KEY = process.env.VITE_STIBEE_ACCESS_TOKEN || process.env.STIBEE_ACCESS_TOKEN;
   const STIBEE_LIST_ID = process.env.VITE_STIBEE_LIST_ID || process.env.STIBEE_LIST_ID;
   const TRIGGER_URL = process.env.STIBEE_TRIGGER_UPDATE;
@@ -29,8 +30,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     console.log(`Processing update notification for ${email}`);
 
+    // Format date to match the confirmation email ("November 16, 2026")
+    let meetingDate = date;
+    try { if (date) meetingDate = format(parseISO(date), "MMMM d, yyyy"); } catch { /* keep raw value */ }
+
     // 1. Update Subscriber Info (v2 API)
-    // meeting_date, meeting_time을 변경된 값으로 업데이트
+    // Re-stamp THIS booking's fields (incl. exhibition/booth/location) right
+    // before triggering, so the email is correct even when the same customer
+    // has bookings in other editions (Stibee keeps one record per email).
     const updateRes = await fetch(`https://api.stibee.com/v2/lists/${STIBEE_LIST_ID}/subscribers`, {
       method: 'POST',
       headers: {
@@ -42,8 +49,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           email,
           fields: {
             name: name || undefined, // Optional update if name is provided
-            meeting_date: date,
-            meeting_time: time
+            meeting_date: meetingDate,
+            meeting_time: time,
+            // Only re-stamp when provided, so a stale client never blanks a good value
+            ...(exhibition !== undefined && { exhibition: String(exhibition).trim() }),
+            ...(booth !== undefined && { booth: String(booth).trim() }),
+            ...(location !== undefined && { location: String(location).trim() })
           }
         },
         updateEnabled: true // Explicitly enable update

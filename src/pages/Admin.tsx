@@ -187,11 +187,14 @@ export function Admin() {
             fetch('/api/notify-update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     email: updates.email || originalBooking.email,
                     name: updates.name || originalBooking.name,
                     date: updates.date || originalBooking.date,
-                    time: updates.time || originalBooking.time
+                    time: updates.time || originalBooking.time,
+                    exhibition: selectedEdition?.name ?? "",
+                    booth: selectedEdition?.booth,
+                    location: selectedEdition?.location
                 })
             }).catch(e => console.error("Failed to send update notification:", e));
         }
@@ -219,7 +222,15 @@ export function Admin() {
          fetch('/api/notify-cancel', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: bookingToDelete.email })
+            body: JSON.stringify({
+                email: bookingToDelete.email,
+                name: bookingToDelete.name,
+                date: bookingToDelete.date,
+                time: bookingToDelete.time,
+                exhibition: selectedEdition?.name ?? "",
+                booth: selectedEdition?.booth,
+                location: selectedEdition?.location
+            })
         }).catch(e => console.error("Failed to send cancel notification:", e));
         
         // Admin Cancel Notification
@@ -417,7 +428,15 @@ export function Admin() {
                     await fetch('/api/notify-cancel', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: bookingToDelete.email })
+                        body: JSON.stringify({
+                            email: bookingToDelete.email,
+                            name: bookingToDelete.name,
+                            date: bookingToDelete.date,
+                            time: bookingToDelete.time,
+                            exhibition: selectedEdition?.name ?? "",
+                            booth: selectedEdition?.booth,
+                            location: selectedEdition?.location
+                        })
                     });
                 } catch (e) {
                     console.error(`Failed to send cancel notification for ${id}:`, e);

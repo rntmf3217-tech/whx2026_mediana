@@ -42,12 +42,21 @@ export function MyBooking() {
       setIsDeleting(true);
       try {
         // 1. Trigger Cancel Email (First) - Priority
+        const cancelled = bookings?.find(b => b.id === deleteModal.bookingId);
         try {
           console.log("[Cancel Flow] Step 1: Sending cancel email trigger...");
           await fetch('/api/notify-cancel', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ email })
+              body: JSON.stringify({
+                email,
+                name: cancelled?.name,
+                date: cancelled?.date,
+                time: cancelled?.time,
+                exhibition: edition.name,
+                booth: edition.booth,
+                location: edition.location
+              })
           });
           console.log("[Cancel Flow] Step 1: Email trigger sent.");
         } catch (e) {
@@ -299,11 +308,14 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
             fetch('/api/notify-update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     email: booking.email,
                     name: booking.name,
                     date: selectedDate,
-                    time: selectedTime
+                    time: selectedTime,
+                    exhibition: edition.name,
+                    booth: edition.booth,
+                    location: edition.location
                 })
             }).catch(e => console.error("Failed to send update notification:", e));
 
