@@ -98,6 +98,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         },
                         body: JSON.stringify({
                             subscriber: admin.email,
+                            customer_email: String(email || "").trim(),
                             name: String(name || "").trim(),
                             company: String(company || "").trim(),
                             country: String(country || "").trim(),

@@ -197,7 +197,10 @@ export function Admin() {
                     time: updates.time || originalBooking.time,
                     exhibition: selectedEdition?.name ?? "",
                     booth: selectedEdition?.booth,
-                    location: selectedEdition?.location
+                    location: selectedEdition?.location,
+                    manage_link: selectedEdition
+                        ? `${window.location.origin}/${selectedEdition.eventKey}/${selectedEdition.year}/my-booking`
+                        : undefined
                 })
             }).catch(e => console.error("Failed to send update notification:", e));
         }

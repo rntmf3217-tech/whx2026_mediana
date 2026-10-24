@@ -321,7 +321,8 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                     time: selectedTime,
                     exhibition: edition.name,
                     booth: edition.booth,
-                    location: edition.location
+                    location: edition.location,
+                    manage_link: `${window.location.origin}/${edition.eventKey}/${edition.year}/my-booking`
                 })
             }).catch(e => console.error("Failed to send update notification:", e));
 

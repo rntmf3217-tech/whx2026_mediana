@@ -17,7 +17,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email, name, date, time, exhibition, booth, location, company, country, inquiry_type } = req.body;
+  const { email, name, date, time, exhibition, booth, location, company, country, inquiry_type, manage_link } = req.body;
   const STIBEE_API_KEY = process.env.VITE_STIBEE_ACCESS_TOKEN || process.env.STIBEE_ACCESS_TOKEN;
   const STIBEE_LIST_ID = process.env.VITE_STIBEE_LIST_ID || process.env.STIBEE_LIST_ID;
   const TRIGGER_URL = process.env.STIBEE_TRIGGER_UPDATE;
@@ -59,7 +59,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             // Only re-stamp when provided, so a stale client never blanks a good value
             ...(exhibition !== undefined && { exhibition: String(exhibition).trim() }),
             ...(booth !== undefined && { booth: String(booth).trim() }),
-            ...(location !== undefined && { location: String(location).trim() })
+            ...(location !== undefined && { location: String(location).trim() }),
+            ...(manage_link !== undefined && { manage_link: String(manage_link).trim() })
           }
         },
         updateEnabled: true // Explicitly enable update
@@ -111,6 +112,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         },
                         body: JSON.stringify({
                             subscriber: admin.email,
+                            customer_email: String(email || "").trim(),
                             name: String(name || "").trim(),
                             company: String(company || "").trim(),
                             country: String(country || "").trim(),
