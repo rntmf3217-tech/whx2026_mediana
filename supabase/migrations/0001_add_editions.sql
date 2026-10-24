@@ -21,7 +21,7 @@ create table if not exists public.editions (
   end_date          date not null,
   operating_hours   jsonb not null,              -- {"2026-02-09":{"start":"10:00","end":"18:00"}, ...}
   booth             text,
-  location          text,                        -- 'Messe Düsseldorf, Hall 11'
+  location          text,                        -- 'Messe Düsseldorf' (홀 번호는 booth에)
   map_embed_url     text,                        -- 부스 지도 iframe URL
   logo_url          text,                        -- 전시회 로고 (없으면 null)
   hosts             jsonb not null default '[]'::jsonb,  -- 담당자 목록
@@ -72,7 +72,7 @@ values (
      "2026-11-18": {"start": "10:00", "end": "18:00"},
      "2026-11-19": {"start": "10:00", "end": "16:00"}
    }'::jsonb,
-  'B16', 'Messe Düsseldorf, Hall 11',
+  'Hall 11 / B16', 'Messe Düsseldorf',
   '["Michael","Bruce","Anna","Walter","Haylee"]'::jsonb,
   true, true
 )
