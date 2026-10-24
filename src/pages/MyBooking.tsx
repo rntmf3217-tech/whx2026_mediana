@@ -51,6 +51,9 @@ export function MyBooking() {
               body: JSON.stringify({
                 email,
                 name: cancelled?.name,
+                company: cancelled?.companyName,
+                country: cancelled?.country,
+                inquiry_type: cancelled?.inquiryType,
                 date: cancelled?.date,
                 time: cancelled?.time,
                 exhibition: edition.name,
@@ -311,6 +314,9 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                 body: JSON.stringify({
                     email: booking.email,
                     name: booking.name,
+                    company: booking.companyName,
+                    country: booking.country,
+                    inquiry_type: updates.inquiryType || booking.inquiryType,
                     date: selectedDate,
                     time: selectedTime,
                     exhibition: edition.name,

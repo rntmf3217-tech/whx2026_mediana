@@ -17,10 +17,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { email, name, date, time, exhibition, booth, location } = req.body;
+  const { email, name, date, time, exhibition, booth, location, company, country, inquiry_type } = req.body;
   const STIBEE_API_KEY = process.env.VITE_STIBEE_ACCESS_TOKEN || process.env.STIBEE_ACCESS_TOKEN;
   const STIBEE_LIST_ID = process.env.VITE_STIBEE_LIST_ID || process.env.STIBEE_LIST_ID;
   const TRIGGER_URL = process.env.STIBEE_TRIGGER_CANCEL;
+
+  // Admin Notification Config
+  const ADMIN_LIST_ID = process.env.STIBEE_ADMIN_LIST_ID || "461812";
+  const ADMIN_TRIGGER_URL = process.env.STIBEE_TRIGGER_ADMIN_CANCEL;
+  const SITE_URL = process.env.SITE_URL || "https://reservation.mediana-global.com";
 
   if (!TRIGGER_URL || !STIBEE_API_KEY) {
     console.error('Missing configuration: STIBEE_TRIGGER_CANCEL or STIBEE_ACCESS_TOKEN');
@@ -34,9 +39,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // triggering, so the cancel email shows the correct exhibition/date even when
     // the same customer has bookings in other editions (one Stibee record per email).
     // Best-effort: never block the cancel if this fails.
+    let meetingDate = date;
+    try { if (date) meetingDate = format(parseISO(date), "MMMM d, yyyy"); } catch { /* keep raw value */ }
+
     if (STIBEE_LIST_ID) {
-      let meetingDate = date;
-      try { if (date) meetingDate = format(parseISO(date), "MMMM d, yyyy"); } catch { /* keep raw value */ }
       try {
         await fetch(`https://api.stibee.com/v2/lists/${STIBEE_LIST_ID}/subscribers`, {
           method: 'POST',
@@ -70,6 +76,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       body: JSON.stringify({ subscriber: email })
     });
+
+    // 2. Admin Notification (best-effort; never fails the request)
+    if (ADMIN_TRIGGER_URL && ADMIN_LIST_ID) {
+        try {
+            const adminListRes = await fetch(`https://api.stibee.com/v2/lists/${ADMIN_LIST_ID}/subscribers?limit=50`, {
+                method: 'GET',
+                headers: { 'AccessToken': STIBEE_API_KEY }
+            });
+
+            if (adminListRes.ok) {
+                const admins: { email: string }[] = (await adminListRes.json()) || [];
+                console.log(`Found ${admins.length} admins to notify.`);
+
+                await Promise.all(admins.map(async (admin) => {
+                    const adminTriggerRes = await fetch(ADMIN_TRIGGER_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'AccessToken': STIBEE_API_KEY
+                        },
+                        body: JSON.stringify({
+                            subscriber: admin.email,
+                            name: String(name || "").trim(),
+                            company: String(company || "").trim(),
+                            country: String(country || "").trim(),
+                            inquiry_type: String(inquiry_type || "").trim(),
+                            meeting_date: meetingDate,
+                            meeting_time: String(time || "").trim(),
+                            manage_link: `${SITE_URL}/admin`,
+                            exhibition: String(exhibition || "").trim(),
+                            booth: String(booth || "").trim(),
+                            location: String(location || "").trim()
+                        })
+                    });
+
+                    if (!adminTriggerRes.ok) {
+                        console.error(`Failed to notify admin ${admin.email}:`, await adminTriggerRes.text());
+                    }
+                }));
+                console.log("✅ Admin cancel notifications processed.");
+            } else {
+                console.error("Failed to fetch admin list:", await adminListRes.text());
+            }
+        } catch (adminError) {
+            console.error("Error in Admin Notification flow:", adminError);
+        }
+    } else {
+        console.log("Skipping Admin Notification: Missing configuration");
+    }
 
     if (!triggerRes.ok) {
         const triggerError = await triggerRes.text();

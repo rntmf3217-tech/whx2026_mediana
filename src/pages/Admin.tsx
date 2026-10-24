@@ -190,6 +190,9 @@ export function Admin() {
                 body: JSON.stringify({
                     email: updates.email || originalBooking.email,
                     name: updates.name || originalBooking.name,
+                    company: updates.companyName || originalBooking.companyName,
+                    country: updates.country || originalBooking.country,
+                    inquiry_type: updates.inquiryType || originalBooking.inquiryType,
                     date: updates.date || originalBooking.date,
                     time: updates.time || originalBooking.time,
                     exhibition: selectedEdition?.name ?? "",
@@ -225,6 +228,9 @@ export function Admin() {
             body: JSON.stringify({
                 email: bookingToDelete.email,
                 name: bookingToDelete.name,
+                company: bookingToDelete.companyName,
+                country: bookingToDelete.country,
+                inquiry_type: bookingToDelete.inquiryType,
                 date: bookingToDelete.date,
                 time: bookingToDelete.time,
                 exhibition: selectedEdition?.name ?? "",
@@ -431,6 +437,9 @@ export function Admin() {
                         body: JSON.stringify({
                             email: bookingToDelete.email,
                             name: bookingToDelete.name,
+                            company: bookingToDelete.companyName,
+                            country: bookingToDelete.country,
+                            inquiry_type: bookingToDelete.inquiryType,
                             date: bookingToDelete.date,
                             time: bookingToDelete.time,
                             exhibition: selectedEdition?.name ?? "",
