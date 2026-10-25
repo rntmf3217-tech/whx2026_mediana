@@ -34,9 +34,9 @@ export const INQUIRY_TYPES: { type: InquiryType; description: string }[] = [
 ];
 
 export const PRODUCT_INTERESTS: ProductInterest[] = [
+  "AEDs",
   "Monitor Defibrillators",
   "Patient Monitors",
-  "AEDs",
   "Others",
 ];
 

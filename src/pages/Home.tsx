@@ -241,7 +241,7 @@ export function Home() {
                   Join MEDIANA at <br/>
                   <span className="font-bold">{edition.name}</span>
                 </h1>
-                <p className="text-white font-[400] text-lg md:text-2xl leading-[1.3] md:leading-[1.2] tracking-wide">Advancing Trust. Connecting Care. Expanding Possibility.</p>
+                <p className="text-white font-[400] text-lg md:text-2xl leading-[1.3] md:leading-[1.2] tracking-wide">Connecting All Care for a Better Life</p>
               </div>
               
               <div className="flex flex-row items-center gap-6 md:gap-10 w-full flex-wrap">
@@ -610,18 +610,20 @@ export function Home() {
                   </div>
                 </div>
                 {edition.mapEmbedUrl && (
-                  <div className="relative w-full h-[400px] group">
+                  <div className="relative w-full h-[440px] md:h-[520px] group">
+                    {/* No color filters: the embed is the organiser's live hall plan, not a dark map tile */}
                     <iframe
                       src={edition.mapEmbedUrl}
-                      className="w-full h-full border-0 bg-white invert-[.9] grayscale-[.5] hover:invert-0 hover:grayscale-0 transition-all duration-500"
+                      className="w-full h-full border-0 bg-white"
                       title="Booth Location Map"
                       loading="lazy"
                     />
+                    {/* Always visible on touch screens (no hover); hover-reveal on desktop */}
                     <a
                       href={edition.mapEmbedUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="absolute bottom-4 right-4 bg-black/80 hover:bg-brand-navy text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all backdrop-blur-sm opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
+                      className="absolute bottom-4 right-4 bg-black/80 hover:bg-brand-navy text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all backdrop-blur-sm md:opacity-0 md:group-hover:opacity-100 md:translate-y-2 md:group-hover:translate-y-0"
                     >
                       <span>Open Full Map</span>
                       <ExternalLink className="w-4 h-4" />
