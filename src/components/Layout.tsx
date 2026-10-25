@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
-import { User, Menu, X } from "lucide-react";
+import { User, Menu, X, ExternalLink } from "lucide-react";
 import logo from "../assets/mediana-logo-white.svg";
 import brandBg from "../assets/brand-hero-bg.webp";
 
@@ -12,6 +12,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const homePath = event && year ? `/${event}/${year}` : "/";
   const myBookingPath = event && year ? `/${event}/${year}/my-booking` : "/";
   const adminPath = "/admin";
+  const companySiteUrl = "https://www.mediana-global.com";
   const { pathname } = useLocation();
   const isAdmin = pathname.startsWith("/admin");
 
@@ -82,6 +83,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <span>My Booking</span>
               <span className="absolute bottom-2 left-4 w-0 h-0.5 bg-gradient-to-r from-brand-blue to-brand-cyan transition-all duration-300 group-hover:w-[calc(100%-32px)]"></span>
             </Link>
+
+            <div className="h-4 w-px bg-white/20 -ml-4" aria-hidden />
+
+            <a
+              href={companySiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="-ml-4 flex items-center gap-2 text-sm font-bold text-slate-300 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5"
+            >
+              <span>MEDIANA</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -115,6 +128,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
             >
               My Booking
             </Link>
+            <a
+              href={companySiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-3xl font-bold text-white hover:text-brand-cyan transition-colors flex items-center justify-center gap-3"
+            >
+              MEDIANA
+              <ExternalLink className="w-6 h-6" />
+            </a>
           </nav>
         </div>
       )}
@@ -140,6 +163,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <ul className="space-y-2">
                 <li><Link to={homePath} className="hover:text-brand-cyan transition-colors">Home</Link></li>
                 <li><Link to={myBookingPath} className="hover:text-brand-cyan transition-colors">My Booking</Link></li>
+                <li>
+                  <a href={companySiteUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 hover:text-brand-cyan transition-colors">
+                    MEDIANA Website
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </li>
               </ul>
             </div>
           </div>
