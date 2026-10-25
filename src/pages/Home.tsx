@@ -254,8 +254,9 @@ export function Home() {
                 {heroDateRange}
                 {edition.city && (
                   <>
-                    <span className="mx-2 md:mx-4 opacity-70" aria-hidden>|</span>
-                    {edition.city}
+                    {/* Phones: city on its own line instead of a mid-name wrap */}
+                    <span className="hidden sm:inline mx-2 md:mx-4 opacity-70" aria-hidden>|</span>
+                    <span className="block sm:inline whitespace-nowrap">{edition.city}</span>
                   </>
                 )}
               </p>
