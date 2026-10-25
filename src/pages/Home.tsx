@@ -609,14 +609,38 @@ export function Home() {
                     )}
                   </div>
                 </div>
-                {edition.mapEmbedUrl && (
+                {edition.boothMapImageUrl ? (
+                  // Zoomed booth-layout snapshot: the live plan can't be deep-zoomed via URL,
+                  // and an image avoids the iframe hijacking touch-scroll on phones
+                  <a
+                    href={edition.mapEmbedUrl || edition.boothMapImageUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="relative block group bg-white"
+                  >
+                    <img
+                      src={edition.boothMapImageUrl}
+                      alt={`Booth ${edition.booth ?? ""} on the ${edition.name} hall plan`}
+                      className="w-full h-auto block"
+                      loading="lazy"
+                    />
+                    {edition.mapEmbedUrl && (
+                      <span className="absolute bottom-4 right-4 bg-black/80 group-hover:bg-brand-navy text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors backdrop-blur-sm">
+                        Open Live Hall Plan
+                        <ExternalLink className="w-4 h-4" />
+                      </span>
+                    )}
+                  </a>
+                ) : edition.mapEmbedUrl && (
                   <div className="relative w-full h-[440px] md:h-[520px] group">
-                    {/* No color filters: the embed is the organiser's live hall plan, not a dark map tile */}
+                    {/* No color filters: the embed is the organiser's live hall plan, not a dark map tile.
+                        sandbox (no allow-top-navigation) stops the embed from navigating our page away. */}
                     <iframe
                       src={edition.mapEmbedUrl}
                       className="w-full h-full border-0 bg-white"
                       title="Booth Location Map"
                       loading="lazy"
+                      sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-forms"
                     />
                     {/* Always visible on touch screens (no hover); hover-reveal on desktop */}
                     <a

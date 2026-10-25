@@ -48,6 +48,7 @@ export interface Edition {
   booth?: string;
   location?: string;
   mapEmbedUrl?: string;
+  boothMapImageUrl?: string; // zoomed booth-layout snapshot; links out to mapEmbedUrl
   logoUrl?: string;
   hosts: string[];
   registrationOpen: boolean;

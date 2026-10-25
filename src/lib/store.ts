@@ -12,6 +12,7 @@ interface EditionRow {
   booth: string | null;
   location: string | null;
   map_embed_url: string | null;
+  booth_map_image_url?: string | null;
   logo_url: string | null;
   hosts: string[] | null;
   registration_open: boolean;
@@ -30,6 +31,7 @@ function mapEdition(e: EditionRow): Edition {
     booth: e.booth ?? undefined,
     location: e.location ?? undefined,
     mapEmbedUrl: e.map_embed_url ?? undefined,
+    boothMapImageUrl: e.booth_map_image_url ?? undefined,
     logoUrl: e.logo_url ?? undefined,
     hosts: e.hosts || [],
     registrationOpen: e.registration_open,
