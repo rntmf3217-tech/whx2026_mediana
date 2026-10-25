@@ -11,6 +11,7 @@ interface EditionRow {
   operating_hours: Record<string, { start: string; end: string }> | null;
   booth: string | null;
   location: string | null;
+  city?: string | null;
   map_embed_url: string | null;
   booth_map_image_url?: string | null;
   logo_url: string | null;
@@ -30,6 +31,7 @@ function mapEdition(e: EditionRow): Edition {
     operatingHours: e.operating_hours || {},
     booth: e.booth ?? undefined,
     location: e.location ?? undefined,
+    city: e.city ?? undefined,
     mapEmbedUrl: e.map_embed_url ?? undefined,
     boothMapImageUrl: e.booth_map_image_url ?? undefined,
     logoUrl: e.logo_url ?? undefined,

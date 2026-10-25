@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { format, parseISO, addMinutes, isBefore, parse } from "date-fns";
-import { Calendar as CalendarIcon, Clock, CheckCircle, ChevronDown, NotebookText, Pencil, MapPin, ArrowRight, Star, Zap, Shield, ExternalLink, X } from "lucide-react";
+import { format, parseISO, addMinutes, isBefore, parse, isSameMonth } from "date-fns";
+import { Calendar as CalendarIcon, Clock, CheckCircle, ChevronDown, ChevronRight, NotebookText, Pencil, MapPin, Star, Zap, Shield, ExternalLink, X } from "lucide-react";
 import { Layout } from "../components/Layout";
 import { INQUIRY_TYPES, PRODUCT_INTERESTS, COUNTRIES } from "../lib/constants";
 import { useEdition } from "../lib/EditionContext";
@@ -48,6 +48,15 @@ export function Home() {
   const scrollToBooking = () => {
     bookingRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // "16-19 November 2026", or "30 November - 2 December 2026" across months
+  const heroDateRange = useMemo(() => {
+    const start = parseISO(edition.startDate);
+    const end = parseISO(edition.endDate);
+    return isSameMonth(start, end)
+      ? `${format(start, "d")}-${format(end, "d MMMM yyyy")}`
+      : `${format(start, "d MMMM")} - ${format(end, "d MMMM yyyy")}`;
+  }, [edition.startDate, edition.endDate]);
 
   const timeSlots = useMemo(() => {
     const hours = edition.operatingHours[selectedDate];
@@ -222,41 +231,46 @@ export function Home() {
           <div className="flex flex-col items-center justify-center w-full">
             
             {/* Left Column: Text Content */}
-            <div className="flex flex-col items-start gap-10 relative z-20 w-full">
-              
-              {/* Logo (image 2570) — use edition logo if set; fall back to the bundled WHX asset only for the WHX event */}
-              {(edition.logoUrl || edition.eventKey === "whx") && (
-                <div className="w-full md:w-auto flex justify-start">
+            <div className="flex flex-col items-start gap-5 md:gap-7 relative z-20 w-full">
+
+              {/* Exhibition logo + name on one line. Logo comes from the edition;
+                  the bundled WHX asset is only a fallback for the WHX event. */}
+              <div className="flex items-center gap-4 md:gap-8">
+                {(edition.logoUrl || edition.eventKey === "whx") && (
                   <img
                     src={edition.logoUrl || whxLogo}
-                    alt={edition.name}
-                    className="w-[120px] md:w-[200px] h-auto object-contain mb-[-10px] md:mb-[-10px]"
+                    alt=""
+                    aria-hidden
+                    className="h-12 sm:h-14 md:h-24 lg:h-28 w-auto object-contain shrink-0"
                   />
-                </div>
-              )}
-
-              {/* Headlines (Frame 1618873519) */}
-              <div className="flex flex-col items-start gap-4 md:gap-6 w-full">
-                <h1 className="text-white font-[200] text-4xl md:text-7xl lg:text-[80px] xl:text-[100px] leading-[1.1] md:leading-[1.12] tracking-tight">
-                  Join MEDIANA at <br/>
-                  <span className="font-bold">{edition.name}</span>
+                )}
+                <h1 className="text-white font-semibold text-4xl sm:text-5xl md:text-7xl lg:text-[100px] leading-none tracking-tight">
+                  {edition.name}
                 </h1>
-                <p className="text-white font-[400] text-lg md:text-2xl leading-[1.3] md:leading-[1.2] tracking-wide">Connecting All Care for a Better Life</p>
               </div>
-              
-              <div className="flex flex-row items-center gap-6 md:gap-10 w-full flex-wrap">
-                {/* CTA Button (Frame 1618873506) */}
+
+              {/* Dates | City */}
+              <p className="text-white font-normal text-lg sm:text-xl md:text-3xl lg:text-[40px] leading-snug">
+                {heroDateRange}
+                {edition.city && (
+                  <>
+                    <span className="mx-2 md:mx-4 opacity-70" aria-hidden>|</span>
+                    {edition.city}
+                  </>
+                )}
+              </p>
+
+              <div className="flex flex-row items-center gap-x-8 gap-y-5 md:gap-x-10 w-full flex-wrap mt-2 md:mt-4">
                 <button
                   onClick={scrollToBooking}
-                  className="group box-border flex flex-row justify-center items-center px-6 py-4 gap-2.5 min-w-[255px] h-[56px] md:h-[64px] rounded-full border border-white hover:bg-white hover:text-brand-navy transition-all duration-300 bg-transparent text-white"
+                  className="group box-border flex flex-row justify-center items-center px-8 gap-2 min-w-[230px] h-[56px] md:h-[64px] rounded-full border border-white hover:bg-white hover:text-brand-navy transition-all duration-300 bg-transparent text-white"
                 >
-                  <span className="font-[600] text-[18px] md:text-[20px] leading-[32px]">Book Meetings Now</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <span className="font-semibold text-[18px] md:text-[20px] leading-[32px]">Request a meeting</span>
+                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
 
-                {/* Booth No */}
                 {edition.booth && (
-                  <div className="text-brand-cyan font-[600] text-2xl md:text-3xl lg:text-[41px] leading-[32px] tracking-tight">Booth No #{edition.booth}</div>
+                  <div className="text-brand-cyan font-normal text-2xl md:text-4xl lg:text-[48px] leading-tight tracking-tight">Booth no. {edition.booth}</div>
                 )}
               </div>
             </div>

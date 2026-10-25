@@ -47,6 +47,7 @@ export interface Edition {
   operatingHours: Record<string, { start: string; end: string }>;
   booth?: string;
   location?: string;
+  city?: string;         // 'Düsseldorf, Germany' — shown in the hero next to the dates
   mapEmbedUrl?: string;
   boothMapImageUrl?: string; // zoomed booth-layout snapshot; links out to mapEmbedUrl
   logoUrl?: string;
