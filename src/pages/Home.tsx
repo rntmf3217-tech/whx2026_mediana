@@ -283,7 +283,7 @@ export function Home() {
             
             {/* Header */}
             <div className="space-y-4 md:space-y-6">
-                <h2 className="text-4xl md:text-5xl font-black text-white leading-tight">
+                <h2 className="text-3xl md:text-5xl font-black text-white leading-tight">
                   We Look Forward to Meeting You
                 </h2>
                 <p className="text-slate-400 text-lg leading-relaxed">Our team is ready to discuss your needs and introduce Mediana’s medical solutions.</p>
@@ -299,8 +299,8 @@ export function Home() {
             {!isClosed && (
               <>
             {/* Inquiry Type Section */}
-            <div className="bg-white/5 rounded-3xl p-8 border border-white/10 backdrop-blur-sm">
-                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+            <div className="bg-white/5 rounded-3xl p-5 md:p-8 border border-white/10 backdrop-blur-sm">
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-5 md:mb-6 flex items-center gap-3">
                   <NotebookText className="w-6 h-6 text-brand-cyan" />
                   Select Inquiry Type
                 </h3>
@@ -331,16 +331,16 @@ export function Home() {
 
             {/* Right Column: Reservation Action */}
             <div className="">
-              <div className="glass rounded-3xl p-6 md:p-10 border border-white/10 shadow-2xl relative overflow-hidden">
+              <div className="glass rounded-3xl p-5 md:p-10 border border-white/10 shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-cyan/20 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-                
-                <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-6 md:mb-8 flex items-center gap-3">
                   <CalendarIcon className="w-6 h-6 text-brand-cyan" />
                   Select Date & Time
                 </h3>
 
                 {/* Date Selection */}
-                <div className="flex gap-3 overflow-x-auto pb-6 mb-6 scrollbar-hide">
+                <div className="flex gap-2 md:gap-3 overflow-x-auto pb-4 md:pb-6 mb-4 md:mb-6 scrollbar-hide">
                   {exhibitionDates.map((date) => {
                     const isSelected = selectedDate === date;
                     return (
@@ -351,7 +351,8 @@ export function Home() {
                           setSelectedTime(null);
                         }}
                         className={cn(
-                          "flex-shrink-0 min-w-[100px] p-4 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 group border",
+                          // Mobile: dates share the row so all exhibition days are visible at once
+                          "flex-1 md:flex-none min-w-[64px] md:min-w-[100px] p-3 md:p-4 rounded-xl transition-all duration-300 flex flex-col items-center gap-1 group border",
                           isSelected
                             ? "bg-white/10 border-brand-cyan text-brand-cyan shadow-lg"
                             : "bg-white/5 border-white/10 text-slate-400 hover:bg-white/10 hover:border-white/20"
@@ -366,14 +367,15 @@ export function Home() {
 
                 {/* Time Selection */}
                 <div className="mb-10">
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-[240px] overflow-y-auto pr-2 custom-scrollbar">
+                  {/* Inner scroll only on desktop; on phones a scroll-inside-scroll is hard to use */}
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 md:gap-3 md:max-h-[240px] md:overflow-y-auto md:pr-2 custom-scrollbar">
                     {timeSlots.map(({ time, available }) => (
                       <button
                         key={time}
                         disabled={!available}
                         onClick={() => setSelectedTime(time)}
                         className={cn(
-                          "py-2 px-1 rounded-lg text-sm font-medium transition-all duration-200 border",
+                          "py-2.5 md:py-2 px-1 rounded-lg text-sm font-medium transition-all duration-200 border",
                           available
                             ? selectedTime === time
                               ? "bg-white/10 border-brand-cyan text-brand-cyan shadow-lg"
@@ -389,7 +391,7 @@ export function Home() {
 
                 <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-10" />
 
-                <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-6 md:mb-8 flex items-center gap-3">
                   <Pencil className="w-6 h-6 text-brand-cyan" />
                   Your Details
                 </h3>
@@ -466,10 +468,9 @@ export function Home() {
                         ))}
                       </select>
                       <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 pointer-events-none peer-focus:text-brand-cyan transition-colors" />
-                      <label 
-                        htmlFor="country"
-                        className="absolute left-4 -top-2.5 bg-[#050A18] px-1 text-xs text-slate-500 transition-all peer-placeholder-shown:text-base peer-placeholder-shown:text-slate-500 peer-placeholder-shown:top-4 peer-placeholder-shown:bg-transparent peer-focus:-top-2.5 peer-focus:text-xs peer-focus:text-brand-cyan peer-focus:bg-[#050A18] peer-focus:px-1 pointer-events-none"
-                      >
+                      {/* A <select> never matches :placeholder-shown, so a floating label
+                          would stay stuck as a dark chip; "Select Country" already labels it */}
+                      <label htmlFor="country" className="sr-only">
                         Country
                       </label>
                     </div>
@@ -574,8 +575,10 @@ export function Home() {
                           <CheckCircle className="h-3.5 w-3.5" />
                         </div>
                       </div>
-                      <label htmlFor="policy-agreement" className="text-sm text-slate-400 leading-tight select-none">
-                        I agree to the <button type="button" onClick={() => setShowPrivacyPolicy(true)} className="text-slate-300 hover:text-white underline decoration-slate-500 underline-offset-4 transition-colors">Privacy Policy</button> and <button type="button" onClick={() => setShowUsagePolicy(true)} className="text-slate-300 hover:text-white underline decoration-slate-500 underline-offset-4 transition-colors">Collection and Use of Personal Information</button>.
+                      {/* Anchors, not <button>s: buttons render as inline-block, which broke the
+                          sentence into centered blocks and pushed the final "." onto its own line */}
+                      <label htmlFor="policy-agreement" className="text-sm text-slate-400 leading-relaxed select-none text-left">
+                        I agree to the <a href="#" role="button" onClick={(e) => { e.preventDefault(); setShowPrivacyPolicy(true); }} className="text-slate-300 hover:text-white underline decoration-slate-500 underline-offset-4 transition-colors">Privacy Policy</a> and <a href="#" role="button" onClick={(e) => { e.preventDefault(); setShowUsagePolicy(true); }} className="text-slate-300 hover:text-white underline decoration-slate-500 underline-offset-4 transition-colors">Collection and Use of Personal Information</a>.
                       </label>
                     </div>
 
@@ -602,7 +605,7 @@ export function Home() {
                       <h3 className="font-bold text-white text-lg mb-1">{edition.location}</h3>
                     )}
                     {edition.booth && (
-                      <div className="text-brand-cyan text-2xl font-bold">Booth No #{edition.booth}</div>
+                      <div className="text-brand-cyan text-xl md:text-2xl font-bold">Booth No #{edition.booth}</div>
                     )}
                   </div>
                 </div>

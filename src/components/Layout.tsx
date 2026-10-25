@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useParams, useLocation } from "react-router-dom";
-import { User, Menu } from "lucide-react";
+import { User, Menu, X } from "lucide-react";
 import logo from "../assets/mediana-logo-white.svg";
 import brandBg from "../assets/brand-hero-bg.webp";
 
@@ -12,7 +12,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const homePath = event && year ? `/${event}/${year}` : "/";
   const myBookingPath = event && year ? `/${event}/${year}/my-booking` : "/";
   const adminPath = "/admin";
-  const isAdmin = useLocation().pathname.startsWith("/admin");
+  const { pathname } = useLocation();
+  const isAdmin = pathname.startsWith("/admin");
+
+  // SPA navigation keeps the previous page's scroll offset; start each page at the top
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,6 +27,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Lock page scroll while the mobile menu is open
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [mobileMenuOpen]);
 
   return (
     <div className="min-h-screen flex flex-col text-white bg-[#0A1124] selection:bg-brand-blue/30 selection:text-white">
@@ -71,36 +85,39 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </nav>
 
           {/* Mobile Menu Button */}
-          <button 
-            className="md:hidden text-white p-2 relative z-[60]"
+          <button
+            className="md:hidden text-white p-2 -mr-2 relative z-[60]"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
           >
-            {mobileMenuOpen ? <div className="w-6 h-6 text-white font-bold text-xl">✕</div> : <Menu className="w-6 h-6" />}
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
-
-        {/* Mobile Menu Overlay */}
-        {mobileMenuOpen && (
-          <div className="fixed inset-0 bg-[#0A1124] z-[55] flex flex-col items-center justify-center animate-fade-in md:hidden">
-            <nav className="flex flex-col gap-10 text-center">
-              <Link
-                to={homePath}
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-3xl font-bold text-white hover:text-brand-cyan transition-colors"
-              >
-                Home
-              </Link>
-              <Link
-                to={myBookingPath}
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-3xl font-bold text-white hover:text-brand-cyan transition-colors"
-              >
-                My Booking
-              </Link>
-            </nav>
-          </div>
-        )}
       </header>
+
+      {/* Mobile Menu Overlay — rendered outside <header>: the header's backdrop-blur
+          makes it the containing block for fixed children, which squashed the menu */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 bg-[#0A1124] z-[45] flex flex-col items-center justify-center md:hidden">
+          <nav className="flex flex-col gap-10 text-center">
+            <Link
+              to={homePath}
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-3xl font-bold text-white hover:text-brand-cyan transition-colors"
+            >
+              Home
+            </Link>
+            <Link
+              to={myBookingPath}
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-3xl font-bold text-white hover:text-brand-cyan transition-colors"
+            >
+              My Booking
+            </Link>
+          </nav>
+        </div>
+      )}
 
       <main className="flex-1 w-full relative z-10">
         {children}

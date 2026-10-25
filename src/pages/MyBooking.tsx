@@ -110,16 +110,16 @@ export function MyBooking() {
         <h1 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 mb-4">My Bookings</h1>
         <p className="text-slate-400 mb-10 text-lg">Enter your email address to check or manage your reservations.</p>
 
-        <form onSubmit={handleSearch} className="flex gap-4 mb-12">
+        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-12">
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email address"
-            className="flex-1 px-6 py-4 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-brand-cyan transition-colors"
+            className="flex-1 min-w-0 px-5 sm:px-6 py-4 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-brand-cyan transition-colors"
           />
-          <button type="submit" className="px-8 py-4 bg-white text-brand-navy rounded-xl font-bold hover:bg-slate-200 transition-colors flex items-center gap-2">
+          <button type="submit" className="px-8 py-4 bg-white text-brand-navy rounded-xl font-bold hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
             <Search className="w-5 h-5" /> Check
           </button>
         </form>
@@ -132,13 +132,13 @@ export function MyBooking() {
               </div>
             ) : (
               bookings.map((booking) => (
-                <div key={booking.id} className="glass p-8 rounded-2xl relative hover:bg-white/10 transition-colors">
-                  <div className="flex justify-between items-start mb-6">
-                    <div>
+                <div key={booking.id} className="glass p-5 sm:p-8 rounded-2xl relative hover:bg-white/10 transition-colors">
+                  <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+                    <div className="min-w-0">
                       <h3 className="font-bold text-xl text-white mb-1">{booking.inquiryType}</h3>
-                      <p className="text-slate-500 text-sm font-mono">Ref: {booking.id}</p>
+                      <p className="text-slate-500 text-sm font-mono break-all">Ref: {booking.id}</p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 shrink-0">
                         <button
                         onClick={() => handleEdit(booking)}
                         className="text-brand-cyan text-sm hover:text-brand-cyan font-medium flex items-center gap-2 px-3 py-1 rounded-full bg-brand-cyan/10 hover:bg-brand-cyan/20 transition-colors"
@@ -356,9 +356,9 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                             <label className="text-xs text-slate-500 uppercase tracking-wider">Full Name</label>
                             <div className="text-white font-medium">{booking.name}</div>
                         </div>
-                        <div>
+                        <div className="min-w-0">
                             <label className="text-xs text-slate-500 uppercase tracking-wider">Email</label>
-                            <div className="text-white font-medium">{booking.email}</div>
+                            <div className="text-white font-medium break-all">{booking.email}</div>
                         </div>
                         <div>
                             <label className="text-xs text-slate-500 uppercase tracking-wider">Company</label>
