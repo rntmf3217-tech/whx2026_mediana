@@ -8,6 +8,7 @@ import { format, parseISO, parse, addMinutes, isBefore } from "date-fns";
 import { cn } from "../lib/utils";
 import { INQUIRY_TYPES, PRODUCT_INTERESTS } from "../lib/constants";
 import { useEdition } from "../lib/EditionContext";
+import { notifyHost, hasHost } from "../lib/email";
 
 export function MyBooking() {
   const { edition } = useEdition();
@@ -65,7 +66,11 @@ export function MyBooking() {
         } catch (e) {
           console.error("[Cancel Flow] Failed to send cancel notification (continuing to delete):", e);
         }
-  
+
+        if (cancelled && hasHost(cancelled.meetingWith)) {
+          notifyHost("cancelled", cancelled.meetingWith, cancelled, edition);
+        }
+
         try {
           // 2. DB Reservation Delete
           console.log("[Cancel Flow] Step 2: Deleting booking from DB...");
@@ -325,6 +330,10 @@ function EditBookingModal({ booking, onClose, onSuccess }: { booking: Booking, o
                     manage_link: `${window.location.origin}/${edition.eventKey}/${edition.year}/my-booking`
                 })
             }).catch(e => console.error("Failed to send update notification:", e));
+
+            if (hasHost(booking.meetingWith)) {
+                notifyHost("updated", booking.meetingWith, { ...booking, ...updates }, edition);
+            }
 
             onSuccess();
         } catch (error) {

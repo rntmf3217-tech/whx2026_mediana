@@ -1,4 +1,41 @@
 import { format, parseISO } from "date-fns";
+import type { Booking, Edition } from "./types";
+
+export const NO_HOST = "담당자 미선택";
+export type HostAction = "assigned" | "unassigned" | "updated" | "cancelled";
+
+export function hasHost(host?: string | null): host is string {
+  return !!host && host !== NO_HOST;
+}
+
+// Internal email to the meeting host. Fire-and-forget: never blocks the booking change.
+export function notifyHost(
+  action: HostAction,
+  host: string,
+  booking: Pick<Booking, "name" | "email" | "companyName" | "country" | "inquiryType" | "productInterest" | "message" | "date" | "time">,
+  edition?: Pick<Edition, "name" | "booth" | "location"> | null
+) {
+  return fetch("/api/notify-host", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action,
+      host,
+      customer_name: booking.name,
+      customer_email: booking.email,
+      company: booking.companyName,
+      country: booking.country,
+      inquiry_type: booking.inquiryType,
+      product: booking.productInterest,
+      message: booking.message ?? "",
+      date: booking.date,
+      time: booking.time,
+      exhibition: edition?.name ?? "",
+      booth: edition?.booth ?? "",
+      location: edition?.location ?? "",
+    }),
+  }).catch(e => console.error(`Failed to notify host (${action}):`, e));
+}
 
 interface EmailParams {
   name: string;

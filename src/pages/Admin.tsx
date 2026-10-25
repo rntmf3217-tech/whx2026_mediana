@@ -9,7 +9,7 @@ import { Download, Calendar as CalendarIcon, List, Search, Trash2, Edit2, Plus, 
 import { format, parseISO, parse, addMinutes, isBefore } from "date-fns";
 import { cn } from "../lib/utils";
 
-import { sendConfirmationEmail } from "../lib/email";
+import { sendConfirmationEmail, notifyHost, hasHost } from "../lib/email";
 import { BookingDetailModal } from "../components/BookingDetailModal";
 import { NotificationDropdown } from "../components/NotificationDropdown";
 
@@ -205,8 +205,20 @@ export function Admin() {
             }).catch(e => console.error("Failed to send update notification:", e));
         }
 
+        // Meeting host emails: new host gets "assigned", previous host "unassigned";
+        // otherwise the current host hears about date/time changes.
+        const updatedData = { ...originalBooking, ...updates };
+        const prevHost = originalBooking.meetingWith;
+        const newHost = updates.meetingWith ?? prevHost;
+        if (newHost !== prevHost) {
+            if (hasHost(newHost)) notifyHost("assigned", newHost, updatedData, selectedEdition);
+            if (hasHost(prevHost)) notifyHost("unassigned", prevHost, updatedData, selectedEdition);
+        } else if (shouldNotifyCustomer && hasHost(newHost)) {
+            notifyHost("updated", newHost, updatedData, selectedEdition);
+        }
+
         await refresh();
-        
+
         // Update the modal with new data
         const updatedBookings = await getBookings(selectedEdition?.id);
         const updatedBooking = updatedBookings.find(b => b.id === id);
@@ -241,7 +253,11 @@ export function Admin() {
                 location: selectedEdition?.location
             })
         }).catch(e => console.error("Failed to send cancel notification:", e));
-        
+
+        if (hasHost(bookingToDelete.meetingWith)) {
+            notifyHost("cancelled", bookingToDelete.meetingWith, bookingToDelete, selectedEdition);
+        }
+
         // Admin Cancel Notification
         await createNotification({
             bookingId: bookingToDelete.id,
@@ -468,6 +484,14 @@ export function Admin() {
         });
 
         await Promise.all(promises);
+
+        // Host emails one at a time: each send re-stamps the host's single Stibee
+        // record, so parallel sends to the same host could mix up booking details
+        const hostCancels = bookings.filter(b => selectedIds.has(b.id) && hasHost(b.meetingWith));
+        for (const b of hostCancels) {
+            await notifyHost("cancelled", b.meetingWith as string, b, selectedEdition);
+        }
+
         await refresh();
         setSelectedIds(new Set());
         alert("Selected bookings deleted successfully.");
