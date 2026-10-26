@@ -152,8 +152,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="col-span-2">
               <h3 className="text-white font-bold text-xl mb-4">MEDIANA Co., Ltd.</h3>
               <p className="text-slate-400 text-sm leading-relaxed">
-                R&D Office : 132, Donghwagongdan-ro, Munmak-eup, Wonju-si, Gangwon-do, Korea<br/>
-                Seoul Office : 53, Donggwang-ro, Seocho-gu, Seoul , Korea<br/>
+                HQ / R&D Office / Factory : 132, Donghwagongdan-ro, Munmak-eup, Wonju-si, Gangwon-do, South Korea<br/>
+                Seoul Office : 53, Donggwang-ro, Seocho-gu, Seoul, South Korea<br/>
                 TEL : +82-033-742-5400 &nbsp;&nbsp; FAX : +82-033-742-5483<br/>
                 E-mail : info@mediana.co.kr
               </p>

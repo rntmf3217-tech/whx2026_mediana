@@ -276,10 +276,7 @@ export function Home() {
                 </button>
 
                 {edition.booth && (
-                  <div className="text-brand-cyan font-normal text-2xl md:text-4xl lg:text-[48px] leading-tight tracking-tight">
-                    {/* Hero only: "Hall 11 / B16" → "Hall 11 B16". Emails keep the stored format. */}
-                    Booth no. {edition.booth.replace(/\s*\/\s*/g, " ")}
-                  </div>
+                  <div className="text-brand-cyan font-normal text-2xl md:text-4xl lg:text-[48px] leading-tight tracking-tight">Booth no. {edition.booth}</div>
                 )}
               </div>
             </div>
@@ -628,7 +625,7 @@ export function Home() {
                       <h3 className="font-bold text-white text-lg mb-1">{edition.location}</h3>
                     )}
                     {edition.booth && (
-                      <div className="text-brand-cyan text-xl md:text-2xl font-bold">Booth No #{edition.booth}</div>
+                      <div className="text-brand-cyan text-xl md:text-2xl font-bold">Booth no. {edition.booth}</div>
                     )}
                   </div>
                 </div>
