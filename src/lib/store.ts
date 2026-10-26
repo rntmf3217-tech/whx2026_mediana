@@ -279,17 +279,12 @@ export async function addBooking(booking: Omit<Booking, "id" | "createdAt" | "st
   }
 }
 
-// Returns false when the booking was already gone (e.g. cancelled from another tab),
-// so callers can skip the cancel emails instead of sending them twice.
-// Relies on the caller being able to SELECT the deleted row: if RLS is enabled on
-// bookings later, add a matching select policy or every cancel will look "already cancelled".
-export async function cancelBooking(id: string): Promise<boolean> {
-  const { data, error } = await supabase.from("bookings").delete().eq("id", id).select("id");
+export async function cancelBooking(id: string): Promise<void> {
+  const { error } = await supabase.from("bookings").delete().eq("id", id);
   if (error) {
     console.error("Error cancelling booking:", error);
     throw error;
   }
-  return (data?.length ?? 0) > 0;
 }
 
 export async function updateBooking(id: string, updates: Partial<Booking>): Promise<void> {
