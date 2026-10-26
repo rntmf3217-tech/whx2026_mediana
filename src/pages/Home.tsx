@@ -271,12 +271,15 @@ export function Home() {
                   onClick={scrollToBooking}
                   className="group box-border flex flex-row justify-center items-center px-8 gap-2 min-w-[230px] h-[56px] md:h-[64px] rounded-full border border-white hover:bg-white hover:text-brand-navy transition-all duration-300 bg-transparent text-white"
                 >
-                  <span className="font-semibold text-[18px] md:text-[20px] leading-[32px]">Request a meeting</span>
+                  <span className="font-semibold text-[18px] md:text-[20px] leading-[32px]">Request a Meeting</span>
                   <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
 
                 {edition.booth && (
-                  <div className="text-brand-cyan font-normal text-2xl md:text-4xl lg:text-[48px] leading-tight tracking-tight">Booth no. {edition.booth}</div>
+                  <div className="text-brand-cyan font-normal text-2xl md:text-4xl lg:text-[48px] leading-tight tracking-tight">
+                    {/* Hero only: "Hall 11 / B16" → "Hall 11 B16". Emails keep the stored format. */}
+                    Booth no. {edition.booth.replace(/\s*\/\s*/g, " ")}
+                  </div>
                 )}
               </div>
             </div>
