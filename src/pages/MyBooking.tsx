@@ -42,12 +42,36 @@ export function MyBooking() {
     if (deleteModal.bookingId && !isDeleting) {
       setIsDeleting(true);
       try {
-        // 1. Trigger Cancel Email (First) - Priority
         const cancelled = bookings?.find(b => b.id === deleteModal.bookingId);
+
+        // 1. DB Reservation Delete (First) — if the booking was already cancelled
+        // (e.g. by an admin or from another tab), stop here so no cancel emails go out twice
+        let deleted: boolean;
         try {
-          console.log("[Cancel Flow] Step 1: Sending cancel email trigger...");
+          console.log("[Cancel Flow] Step 1: Deleting booking from DB...");
+          deleted = await cancelBooking(deleteModal.bookingId);
+          console.log("[Cancel Flow] Step 1: Delete finished.", { deleted });
+        } catch (error) {
+          console.error("Error cancelling booking:", error);
+          alert("Failed to cancel booking. Please try again.");
+          return;
+        }
+
+        const data = await getBookingsByEmail(edition.id, email); // Refresh
+        setBookings(data);
+        setDeleteModal({ isOpen: false, bookingId: null });
+
+        setToastMessage(deleted ? "Booking cancelled successfully." : "This booking was already cancelled.");
+        setShowSuccessToast(true);
+        setTimeout(() => setShowSuccessToast(false), 3000);
+        if (!deleted) return;
+
+        // 2. Trigger Cancel Email
+        try {
+          console.log("[Cancel Flow] Step 2: Sending cancel email trigger...");
           await fetch('/api/notify-cancel', {
               method: 'POST',
+              keepalive: true, // the booking is already deleted; let the email go out even if the tab closes
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 email,
@@ -62,33 +86,13 @@ export function MyBooking() {
                 location: edition.location
               })
           });
-          console.log("[Cancel Flow] Step 1: Email trigger sent.");
+          console.log("[Cancel Flow] Step 2: Email trigger sent.");
         } catch (e) {
-          console.error("[Cancel Flow] Failed to send cancel notification (continuing to delete):", e);
+          console.error("[Cancel Flow] Failed to send cancel notification:", e);
         }
 
         if (cancelled && hasHost(cancelled.meetingWith)) {
           notifyHost("cancelled", cancelled.meetingWith, cancelled, edition);
-        }
-
-        try {
-          // 2. DB Reservation Delete
-          console.log("[Cancel Flow] Step 2: Deleting booking from DB...");
-          await cancelBooking(deleteModal.bookingId);
-          console.log("[Cancel Flow] Step 2: Booking deleted from DB.");
-          
-          // 3. Stibee Subscriber Deletion Removed (To prevent duplicate booking issues)
-          console.log("[Cancel Flow] Step 3: Subscriber deletion skipped (design change).");
-  
-          const data = await getBookingsByEmail(edition.id, email); // Refresh
-          setBookings(data);
-          setDeleteModal({ isOpen: false, bookingId: null });
-          setToastMessage("Booking cancelled successfully.");
-          setShowSuccessToast(true);
-          setTimeout(() => setShowSuccessToast(false), 3000);
-        } catch (error) {
-          console.error("Error cancelling booking:", error);
-          alert("Failed to cancel booking. Please try again.");
         }
       } finally {
         setIsDeleting(false);

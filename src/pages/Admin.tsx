@@ -235,6 +235,24 @@ export function Admin() {
 
   const handleBookingDelete = async (id: string) => {
     const bookingToDelete = bookings.find(b => b.id === id);
+
+    // Delete first: if the booking was already cancelled (e.g. from another tab),
+    // nothing is deleted and no cancel emails go out a second time
+    let deleted: boolean;
+    try {
+        deleted = await cancelBooking(id);
+    } catch (error) {
+        console.error("Error deleting booking:", error);
+        alert("Failed to delete booking.");
+        return;
+    }
+
+    if (!deleted) {
+        await refresh();
+        alert("This booking was already cancelled.");
+        return;
+    }
+
     if (bookingToDelete) {
          // Trigger Cancel Email (Customer Only)
          fetch('/api/notify-cancel', {
@@ -267,15 +285,9 @@ export function Admin() {
         });
     }
 
-    try {
-        await cancelBooking(id);
-        await refresh();
-        setShowSuccessToast(true);
-        setTimeout(() => setShowSuccessToast(false), 3000);
-    } catch (error) {
-        console.error("Error deleting booking:", error);
-        alert("Failed to delete booking.");
-    }
+    await refresh();
+    setShowSuccessToast(true);
+    setTimeout(() => setShowSuccessToast(false), 3000);
   };
 
   // Time slots generation for the selected date in modal
@@ -446,8 +458,12 @@ export function Admin() {
         const promises = Array.from(selectedIds).map(async (id) => {
             // 1. Find booking to get email
             const bookingToDelete = bookings.find(b => b.id === id);
-            
-            // 2. Send Notification
+
+            // 2. Delete Booking — skip the emails if it was already cancelled elsewhere
+            const deleted = await cancelBooking(id);
+            if (!deleted) return null;
+
+            // 3. Send Notification
             if (bookingToDelete) {
                 try {
                     await fetch('/api/notify-cancel', {
@@ -479,22 +495,39 @@ export function Admin() {
                 });
             }
 
-            // 3. Delete Booking
-            return cancelBooking(id);
+            return id;
         });
 
-        await Promise.all(promises);
+        // allSettled: one failed delete must not skip the host emails and refresh for
+        // the rows that did get deleted — a retry would see them as already cancelled
+        const ids = Array.from(selectedIds);
+        const results = await Promise.allSettled(promises);
+        const deletedIds = new Set<string>();
+        const failedIds = new Set<string>();
+        results.forEach((r, i) => {
+            if (r.status === "rejected") {
+                console.error(`Failed to delete booking ${ids[i]}:`, r.reason);
+                failedIds.add(ids[i]);
+            } else if (r.value !== null) {
+                deletedIds.add(r.value);
+            }
+        });
 
         // Host emails one at a time: each send re-stamps the host's single Stibee
         // record, so parallel sends to the same host could mix up booking details
-        const hostCancels = bookings.filter(b => selectedIds.has(b.id) && hasHost(b.meetingWith));
+        const hostCancels = bookings.filter(b => deletedIds.has(b.id) && hasHost(b.meetingWith));
         for (const b of hostCancels) {
             await notifyHost("cancelled", b.meetingWith as string, b, selectedEdition);
         }
 
+        const alreadyCancelled = ids.length - deletedIds.size - failedIds.size;
         await refresh();
-        setSelectedIds(new Set());
-        alert("Selected bookings deleted successfully.");
+        setSelectedIds(failedIds); // keep only the failed ones selected for a retry
+        const notes = [
+            alreadyCancelled > 0 ? `${alreadyCancelled} were already cancelled (no emails sent for those).` : "",
+            failedIds.size > 0 ? `${failedIds.size} failed and are still selected — try again.` : "",
+        ].filter(Boolean).join(" ");
+        alert(notes ? `Deleted ${deletedIds.size} bookings. ${notes}` : "Selected bookings deleted successfully.");
       } catch (error) {
         console.error("Bulk delete error:", error);
         alert("Failed to delete some bookings.");
