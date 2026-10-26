@@ -8,6 +8,8 @@ export type ProductInterest =
   | "Monitor Defibrillators"
   | "Patient Monitors"
   | "AEDs"
+  | "Vascular Access Devices"
+  | "Automatic CPR Machine"
   | "Others";
 
 export interface Booking {
