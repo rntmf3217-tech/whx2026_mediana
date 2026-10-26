@@ -37,8 +37,8 @@ export const PRODUCT_INTERESTS: ProductInterest[] = [
   "AEDs",
   "Monitor Defibrillators",
   "Patient Monitors",
-  "Vascular Access Devices",
   "Automatic CPR Machine",
+  "Vascular Access Devices",
   "Others",
 ];
 
