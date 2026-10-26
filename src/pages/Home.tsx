@@ -233,6 +233,11 @@ export function Home() {
             {/* Left Column: Text Content */}
             <div className="flex flex-col items-start gap-5 md:gap-7 relative z-20 w-full">
 
+              {/* Slogan — same scale as the dates line below */}
+              <p className="text-white font-normal text-lg sm:text-xl md:text-3xl lg:text-[40px] leading-snug">
+                Connecting All Care for a Better Life
+              </p>
+
               {/* Exhibition logo + name on one line. Logo comes from the edition;
                   the bundled WHX asset is only a fallback for the WHX event. */}
               <div className="flex items-center gap-4 md:gap-8">
