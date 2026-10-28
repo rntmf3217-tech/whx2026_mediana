@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Plus, Trash2, Check, Lock } from "lucide-react";
+import { X, Plus, Trash2, Lock } from "lucide-react";
 import { cn } from "../lib/utils";
 import { hostAdmin, HostAdminError, type HostRecord } from "../lib/hosts";
 
@@ -86,7 +86,9 @@ export function HostManagerModal({ onClose, onChanged }: HostManagerModalProps) 
     return d.name.trim() !== h.name || d.email.trim() !== h.email;
   };
 
+  // Name/email edits save when the field loses focus (or on Enter)
   const handleSave = (h: HostRecord) => {
+    if (!isDirty(h) || busy !== null) return;
     const d = draftOf(h);
     const renamed = d.name.trim() !== h.name;
     if (renamed && h.assigned > 0 &&
@@ -163,6 +165,8 @@ export function HostManagerModal({ onClose, onChanged }: HostManagerModalProps) 
                       <input
                         value={d.name}
                         onChange={(e) => setDrafts(prev => ({ ...prev, [h.id]: { ...d, name: e.target.value } }))}
+                        onBlur={() => handleSave(h)}
+                        onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                         className={inputClass}
                         aria-label="이름"
                       />
@@ -170,6 +174,8 @@ export function HostManagerModal({ onClose, onChanged }: HostManagerModalProps) 
                         type="email"
                         value={d.email}
                         onChange={(e) => setDrafts(prev => ({ ...prev, [h.id]: { ...d, email: e.target.value } }))}
+                        onBlur={() => handleSave(h)}
+                        onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
                         className={inputClass}
                         aria-label="이메일"
                       />
@@ -182,18 +188,8 @@ export function HostManagerModal({ onClose, onChanged }: HostManagerModalProps) 
                           className="accent-brand-cyan w-4 h-4"
                         />
                         사용
-                        <span className="text-slate-500 text-xs">· 배정 {h.assigned}</span>
                       </label>
-                      <div className="flex gap-2 justify-end">
-                        <button
-                          onClick={() => handleSave(h)}
-                          disabled={!isDirty(h) || busy !== null}
-                          className="p-2 rounded-lg text-brand-cyan hover:bg-brand-cyan/10 disabled:opacity-30 disabled:hover:bg-transparent"
-                          title="저장"
-                          aria-label={`${h.name} 저장`}
-                        >
-                          <Check className="w-5 h-5" />
-                        </button>
+                      <div className="flex justify-end">
                         <button
                           onClick={() => handleDelete(h)}
                           disabled={busy !== null}
@@ -211,7 +207,7 @@ export function HostManagerModal({ onClose, onChanged }: HostManagerModalProps) 
 
               <form onSubmit={handleCreate} className="grid grid-cols-1 md:grid-cols-[1fr_1.6fr_auto] gap-3 items-center p-3 rounded-xl border border-dashed border-white/15">
                 <input
-                  placeholder="이름 (예: Marc)"
+                  placeholder="이름"
                   value={newHost.name}
                   onChange={(e) => setNewHost({ ...newHost, name: e.target.value })}
                   className={inputClass}

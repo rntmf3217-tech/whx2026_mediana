@@ -131,6 +131,7 @@ export function Admin() {
     email: string;
     message: string;
     customerType?: "new" | "existing";
+    meetingWith?: string;
   }>({
     date: "",
     time: "",
@@ -360,8 +361,12 @@ export function Admin() {
             actionType: 'create',
             editionId: selectedEdition?.id
         });
+
+        if (hasHost(newBooking.meetingWith)) {
+            notifyHost("assigned", newBooking.meetingWith, newBookingResult as Booking, selectedEdition);
+        }
       }
-      
+
       await refresh();
       setShowAddModal(false);
 
@@ -394,7 +399,8 @@ export function Admin() {
         country: "",
         email: "",
         message: "",
-        customerType: undefined
+        customerType: undefined,
+        meetingWith: undefined
       });
       alert("Booking added successfully!"); // Add simple feedback
     } catch (error) {
@@ -1007,6 +1013,19 @@ export function Admin() {
                     placeholder="Enter email"
                     required
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-400">Meeting With</label>
+                  <select
+                    value={newBooking.meetingWith || "담당자 미선택"}
+                    onChange={(e) => setNewBooking({...newBooking, meetingWith: e.target.value})}
+                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-brand-cyan focus:outline-none"
+                  >
+                    {hostOptions.map(host => (
+                      <option key={host} value={host}>{host}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

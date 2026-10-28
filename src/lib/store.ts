@@ -226,7 +226,7 @@ export async function addBooking(booking: Omit<Booking, "id" | "createdAt" | "st
     customer_type: booking.customerType,
     date: booking.date,
     time: booking.time,
-    meeting_with: '담당자 미선택', // Default value
+    meeting_with: booking.meetingWith || '담당자 미선택',
     // Only stamp edition_id when provided; otherwise let the DB default apply
     ...(booking.editionId !== undefined ? { edition_id: booking.editionId } : {}),
   };
