@@ -429,7 +429,7 @@ export function Admin() {
     const link = document.createElement("a");
     const timestamp = format(new Date(), "yyMMdd");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `whx_bookings${selectedIds.size > 0 ? '_selected' : ''}_${timestamp}.csv`);
+    link.setAttribute("download", `${selectedEdition?.id ?? "bookings"}_bookings${selectedIds.size > 0 ? '_selected' : ''}_${timestamp}.csv`);
     document.body.appendChild(link);
     link.click();
   };
