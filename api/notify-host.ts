@@ -4,9 +4,40 @@ import { format, parseISO } from 'date-fns';
 // Internal email to the meeting host (Meeting With) when a booking is assigned
 // to them, taken away from them, or changed/cancelled while assigned.
 //
-// Host emails live only in the server-side HOST_EMAILS env var
-// (JSON: {"Michael":"michael@mediana.co.kr", ...}) — not in the editions table,
-// which the public anon key can read.
+// Host emails come from the hosts table (managed on the admin page, readable only
+// with the server's service_role key). The old HOST_EMAILS env var
+// (JSON: {"Michael":"michael@mediana.co.kr", ...}) is only a fallback.
+
+async function findHostInTable(host: string): Promise<{ name: string; email: string } | null> {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  try {
+    const r = await fetch(`${url}/rest/v1/hosts?select=name,email`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
+    if (!r.ok) {
+      console.error('Host lookup failed:', r.status, await r.text());
+      return null;
+    }
+    const rows: { name: string; email: string }[] = await r.json();
+    return rows.find(h => h.name.toLowerCase() === host.toLowerCase()) ?? null;
+  } catch (e) {
+    console.error('Host lookup failed:', e);
+    return null;
+  }
+}
+
+function findHostInEnv(host: string): { name: string; email: string } | null {
+  let hostEmails: Record<string, string> = {};
+  try {
+    hostEmails = JSON.parse(process.env.HOST_EMAILS || '{}');
+  } catch {
+    console.error('HOST_EMAILS is not valid JSON');
+  }
+  const name = Object.keys(hostEmails).find(k => k.toLowerCase() === host.toLowerCase());
+  return name ? { name, email: hostEmails[name] } : null;
+}
 
 const ACTIONS: Record<string, { tag: string; title: string }> = {
   assigned:   { tag: '배정',      title: '새 미팅이 배정되었습니다.' },
@@ -52,14 +83,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ skipped: 'not configured' });
   }
 
-  let hostEmails: Record<string, string> = {};
-  try {
-    hostEmails = JSON.parse(process.env.HOST_EMAILS || '{}');
-  } catch {
-    console.error('HOST_EMAILS is not valid JSON');
-  }
-  const hostKey = Object.keys(hostEmails).find(k => k.toLowerCase() === String(host).trim().toLowerCase());
-  const hostEmail = hostKey ? hostEmails[hostKey] : undefined;
+  const hostName = String(host).trim();
+  const found = (await findHostInTable(hostName)) ?? findHostInEnv(hostName);
+  const hostKey = found?.name;
+  const hostEmail = found?.email;
   if (!hostEmail) {
     console.log(`Skipping host notification: no email for host "${host}"`);
     return res.status(200).json({ skipped: 'unknown host' });

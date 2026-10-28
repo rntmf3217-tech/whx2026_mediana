@@ -260,7 +260,8 @@ Created At: ${format(parseISO(booking.createdAt), "yyyy-MM-dd HH:mm:ss")}
                                 onChange={(e) => handleChange('meetingWith', e.target.value)}
                                 className="w-full bg-black/40 border border-white/10 rounded px-3 py-2 text-white focus:border-brand-cyan focus:outline-none"
                             >
-                                {(hosts && hosts.length ? hosts : MEETING_HOSTS).map(host => (
+                                {/* Keep the current host selectable even if switched off in the directory */}
+                                {Array.from(new Set([...(hosts && hosts.length ? hosts : MEETING_HOSTS), ...(booking.meetingWith ? [booking.meetingWith] : [])])).map(host => (
                                     <option key={host} value={host}>{host}</option>
                                 ))}
                             </select>

@@ -12,6 +12,8 @@ import { cn } from "../lib/utils";
 import { sendConfirmationEmail, notifyHost, hasHost } from "../lib/email";
 import { BookingDetailModal } from "../components/BookingDetailModal";
 import { NotificationDropdown } from "../components/NotificationDropdown";
+import { HostManagerModal } from "../components/HostManagerModal";
+import { fetchHostNames, type HostName } from "../lib/hosts";
 
 export function Admin() {
   const navigate = useNavigate();
@@ -93,6 +95,29 @@ export function Admin() {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // Meeting hosts come from the host directory (managed in "담당자 관리").
+  // If it isn't reachable, fall back to the edition's list as before.
+  const [hostDirectory, setHostDirectory] = useState<HostName[] | null>(null);
+  const [showHostManager, setShowHostManager] = useState(false);
+  const loadHosts = useCallback(async () => {
+    setHostDirectory(await fetchHostNames());
+  }, []);
+  useEffect(() => {
+    loadHosts();
+  }, [loadHosts]);
+
+  const hostOptions = useMemo<string[]>(() => {
+    if (hostDirectory) return ["담당자 미선택", ...hostDirectory.filter(h => h.active).map(h => h.name)];
+    return selectedEdition?.hosts?.length ? ["담당자 미선택", ...selectedEdition.hosts] : [...MEETING_HOSTS];
+  }, [hostDirectory, selectedEdition]);
+
+  // The filter also lists hosts that are switched off but still on bookings
+  const hostFilterOptions = useMemo(() => {
+    const names = new Set(hostOptions);
+    bookings.forEach(b => { if (b.meetingWith) names.add(b.meetingWith); });
+    return Array.from(names);
+  }, [hostOptions, bookings]);
 
   // New Booking State
   const [newBooking, setNewBooking] = useState<{
@@ -404,6 +429,7 @@ export function Admin() {
 
   const handleLogout = () => {
     localStorage.removeItem("adminAuth");
+    try { sessionStorage.removeItem("hostAdminPassword"); } catch { /* ignore */ }
     navigate("/admin/login");
   };
 
@@ -570,6 +596,12 @@ export function Admin() {
             >
               <Plus className="w-4 h-4" /> Add Booking
             </button>
+            <button
+              onClick={() => setShowHostManager(true)}
+              className="flex items-center gap-2 px-6 py-3 bg-white/10 text-slate-200 border border-white/10 rounded-xl hover:bg-white/20 transition-all text-sm font-bold"
+            >
+              <Users className="w-4 h-4" /> 담당자 관리
+            </button>
             <button onClick={handleExport} className="flex items-center gap-2 px-6 py-3 bg-brand-green/10 text-brand-green border border-brand-green/20 rounded-xl hover:bg-brand-green/20 hover:shadow-lg hover:shadow-brand-green/10 transition-all text-sm font-bold">
               <Download className="w-4 h-4" /> {selectedIds.size > 0 ? `Export (${selectedIds.size})` : "Export Excel"}
             </button>
@@ -629,7 +661,7 @@ export function Admin() {
                 className="bg-black/40 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-cyan w-full md:w-40"
               >
                 <option value="">모든 담당자</option>
-                {(selectedEdition?.hosts?.length ? ["담당자 미선택", ...selectedEdition.hosts] : MEETING_HOSTS).map(host => (
+                {hostFilterOptions.map(host => (
                   <option key={host} value={host}>{host}</option>
                 ))}
               </select>
@@ -822,9 +854,13 @@ export function Admin() {
             onClose={() => setDetailModal({ isOpen: false, booking: null })}
             onUpdate={handleBookingUpdate}
             onDelete={handleBookingDelete}
-            hosts={selectedEdition?.hosts?.length ? ["담당자 미선택", ...selectedEdition.hosts] : MEETING_HOSTS}
+            hosts={hostOptions}
             operatingHours={selectedEdition?.operatingHours}
         />
+      )}
+
+      {showHostManager && (
+        <HostManagerModal onClose={() => setShowHostManager(false)} onChanged={loadHosts} />
       )}
 
       {showAddModal && createPortal(
