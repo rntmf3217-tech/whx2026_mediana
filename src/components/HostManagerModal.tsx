@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Plus, Trash2, Lock } from "lucide-react";
 import { cn } from "../lib/utils";
@@ -34,6 +34,7 @@ export function HostManagerModal({ onClose, onChanged }: HostManagerModalProps) 
   const [newHost, setNewHost] = useState({ name: "", email: "" });
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const backdropPressed = useRef(false);
 
   const load = useCallback(async (pw: string) => {
     setError("");
@@ -117,7 +118,15 @@ export function HostManagerModal({ onClose, onChanged }: HostManagerModalProps) 
   const inputClass = "w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:border-brand-cyan focus:outline-none";
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="host-manager-title">
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="host-manager-title"
+      // Close on an outside click that also started outside (not a text-selection drag)
+      onMouseDown={(e) => { backdropPressed.current = e.target === e.currentTarget; }}
+      onClick={(e) => { if (backdropPressed.current && e.target === e.currentTarget) onClose(); }}
+    >
       <div className="bg-[#0F1A33] border border-white/10 rounded-2xl w-full max-w-3xl flex flex-col max-h-[85dvh] shadow-2xl">
         <div className="p-6 border-b border-white/10 flex justify-between items-center shrink-0">
           <h2 id="host-manager-title" className="text-xl font-bold text-white">담당자 관리</h2>

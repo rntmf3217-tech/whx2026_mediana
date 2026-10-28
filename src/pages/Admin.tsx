@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { Layout } from "../components/Layout";
@@ -28,6 +28,7 @@ export function Admin() {
   const [filterMeetingHost, setFilterMeetingHost] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showAddModal, setShowAddModal] = useState(false);
+  const addBackdropPressed = useRef(false);
   // Removed editModal and deleteModal state as they are now handled within BookingDetailModal or via direct handlers
   const [detailModal, setDetailModal] = useState<{isOpen: boolean, booking: Booking | null}>({isOpen: false, booking: null});
   const [showSuccessToast, setShowSuccessToast] = useState(false);
@@ -608,7 +609,7 @@ export function Admin() {
             >
               <Users className="w-4 h-4" /> 담당자 관리
             </button>
-            <button onClick={handleExport} className="flex items-center gap-2 px-6 py-3 bg-brand-green/10 text-brand-green border border-brand-green/20 rounded-xl hover:bg-brand-green/20 hover:shadow-lg hover:shadow-brand-green/10 transition-all text-sm font-bold">
+            <button onClick={handleExport} className="flex items-center gap-2 px-6 py-3 bg-white/10 text-slate-200 border border-white/10 rounded-xl hover:bg-white/20 transition-all text-sm font-bold">
               <Download className="w-4 h-4" /> {selectedIds.size > 0 ? `Export (${selectedIds.size})` : "Export Excel"}
             </button>
             <button 
@@ -870,11 +871,15 @@ export function Admin() {
       )}
 
       {showAddModal && createPortal(
-        <div 
+        <div
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="modal-title"
+          // Close on a click outside the form — only when the press also started outside,
+          // so selecting text in a field and releasing outside doesn't wipe the form
+          onMouseDown={(e) => { addBackdropPressed.current = e.target === e.currentTarget; }}
+          onClick={(e) => { if (addBackdropPressed.current && e.target === e.currentTarget) setShowAddModal(false); }}
         >
           <div className="bg-[#0F1A33] border border-white/10 rounded-2xl w-full max-w-2xl flex flex-col max-h-[85dvh] shadow-2xl relative z-[10000]">
             <div className="p-6 border-b border-white/10 flex justify-between items-center bg-[#0F1A33] z-10 shrink-0 rounded-t-2xl">
