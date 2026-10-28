@@ -413,9 +413,8 @@ export function Admin() {
   };
 
   const handleExport = () => {
-    const targetBookings = selectedIds.size > 0 
-      ? bookings.filter(b => selectedIds.has(b.id))
-      : bookings;
+    // Always the whole edition; list-view checkboxes are only for bulk delete
+    const targetBookings = bookings;
 
     const headers = ["ID", "Name", "Email", "Company", "Country", "Product", "Inquiry Type", "Customer Type", "Meeting With", "Date", "Time", "Message", "Created At"];
     const rows = targetBookings.map(b => {
@@ -429,7 +428,7 @@ export function Admin() {
     const link = document.createElement("a");
     const timestamp = format(new Date(), "yyMMdd");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `${selectedEdition?.id ?? "bookings"}_bookings${selectedIds.size > 0 ? '_selected' : ''}_${timestamp}.csv`);
+    link.setAttribute("download", `${selectedEdition?.id ?? "bookings"}_bookings_${timestamp}.csv`);
     document.body.appendChild(link);
     link.click();
   };
@@ -610,7 +609,7 @@ export function Admin() {
               <Users className="w-4 h-4" /> 담당자 관리
             </button>
             <button onClick={handleExport} className="flex items-center gap-2 px-6 py-3 bg-white/10 text-slate-200 border border-white/10 rounded-xl hover:bg-white/20 transition-all text-sm font-bold">
-              <Download className="w-4 h-4" /> {selectedIds.size > 0 ? `Export (${selectedIds.size})` : "Export Excel"}
+              <Download className="w-4 h-4" /> Export Excel
             </button>
             <button 
               onClick={handleLogout} 
